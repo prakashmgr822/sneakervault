@@ -110,7 +110,7 @@ return [
     */
 
     'preloader' => [
-        'enabled' => true,
+        'enabled' => false,
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
@@ -257,7 +257,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => 'redirect',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -315,28 +315,20 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
+        //for admin
         [
             'text' => 'Dashboard',
-            'route' => 'admin.index',
+            'route' => 'admin.home',
             'icon'  => 'nav-icon fas fa-user',
+            'guard' => 'web',
         ],
+
+        //for vendors
         [
-            'text' => 'pages',
-            'url' => 'admin/pages',
-            'icon' => 'far fa-fw fa-file',
-            'label' => 4,
-            'label_color' => 'success',
-        ],
-        ['header' => 'account_settings'],
-        [
-            'text' => 'profile',
-            'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-user',
-        ],
-        [
-            'text' => 'change_password',
-            'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-lock',
+            'text' => 'Dashboard',
+            'route' => 'vendor.home',
+            'icon'  => 'nav-icon fas fa-user',
+            'guard' => 'vendor',
         ],
     ],
 
@@ -360,6 +352,7 @@ return [
         JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        App\Helpers\MenuFilter::class,
     ],
 
     /*
