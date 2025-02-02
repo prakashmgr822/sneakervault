@@ -317,7 +317,7 @@ return [
         ],
         [
             'text' => 'Admin',
-            'route' => 'admins.index',
+            'route' => 'admin.index',
             'icon'  => 'nav-icon fas fa-user',
         ],
         [
