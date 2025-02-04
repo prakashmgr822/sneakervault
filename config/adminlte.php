@@ -330,6 +330,13 @@ return [
             'icon'  => 'nav-icon fas fa-user',
             'guard' => 'vendor',
         ],
+
+        [
+            'text' => 'Product',
+            'route' => 'products.index',
+            'icon'  => 'nav-icon fas fa-shoe-prints',
+            'guard' => 'vendor',
+        ],
     ],
 
     /*

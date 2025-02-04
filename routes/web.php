@@ -28,6 +28,9 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
 
 Route::group(['prefix' => 'vendor', 'middleware' => 'auth:vendor'], function () {
     Route::get('home', [App\Http\Controllers\Vendor\DashboardController::class, 'index'])->name('vendor.home');
+    Route::resource('products', \App\Http\Controllers\Vendor\ProductController::class);
 });
+
+Route::resource('uploader', \App\Http\Controllers\UploadController::class);
 
 

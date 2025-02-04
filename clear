@@ -1,0 +1,22 @@
+
+   Illuminate\Contracts\Container\BindingResolutionException 
+
+  Target class [view] does not exist.
+
+  at vendor\laravel\framework\src\Illuminate\Container\Container.php:946
+    942▕ 
+    943▕         try {
+    944▕             $reflector = new ReflectionClass($concrete);
+    945▕         } catch (ReflectionException $e) {
+  ➜ 946▕             throw new BindingResolutionException("Target class [$concrete] does not exist.", 0, $e);
+    947▕         }
+    948▕ 
+    949▕         // If the type is not instantiable, the developer is attempting to resolve
+    950▕         // an abstract type such as an Interface or Abstract Class and there is
+
+  1   [internal]:0
+      Illuminate\Foundation\Application::Illuminate\Foundation\{closure}(Object(JeroenNoten\LaravelAdminLte\AdminLteServiceProvider), "JeroenNoten\LaravelAdminLte\AdminLteServiceProvider")
+
+  2   vendor\laravel\framework\src\Illuminate\Container\Container.php:944
+      ReflectionException::("Class "view" does not exist")
+
