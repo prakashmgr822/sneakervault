@@ -26,7 +26,7 @@
                         <!-- /.card-header -->
                         <!-- form start -->
                         <form class="form repeater" id="form" name="myForm" action="{{route($route.'store')}}"
-                              method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+                              method="post" enctype="multipart/form-data">
                             <div class="card-body">
                                 @csrf
                                 @if ($errors->any())
@@ -65,97 +65,37 @@
 @endsection
 @section('js')
     {{--    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>--}}
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.0/jquery.validate.min.js"></script>
     <script>
+        let specifications = [];
+
         jQuery(document).ready(function () {
-            $('#summernote').summernote({
-                height: 400,
-                callbacks: {
-                    onImageUpload: function (files) {
-                        for (let i = 0; i < files.length; i++) {
-                            $.upload(files[i]);
-                        }
-                    },
-                    onMediaDelete: function (target) {
-                        const src = $(target[0]).attr('src');
-                        const imageId = $(target[0]).attr('data-id');
+            $('#button_submit').click(
+                function (e) {
 
-                        deleteFile(imageId);
+                    let form = $('#form');
+                    if (!$('#form').valid()) {
+                        return;
                     }
-                },
-            });
-            $('#summernote1').summernote({
-                height: 400,
-                callbacks: {
-                    onImageUpload: function (files) {
-                        for (let i = 0; i < files.length; i++) {
-                            $.upload(files[i]);
+                    let names = [...$('.specficationName')];
+                    let values = [...$('.specficationValue')];
+
+                    names.forEach(function (name, obj) {
+                        let keyValue = {
+                            name: name.value,
+                            value: values[obj].value
                         }
-                    },
-                    onMediaDelete: function (target) {
-                        const src = $(target[0]).attr('src');
-                        const imageId = $(target[0]).attr('data-id');
 
-                        deleteFile(imageId);
-                    }
-                },
-            });
+                        specifications.push(keyValue)
 
-            $.upload = function (file) {
-                let out = new FormData();
-                out.append("_token", "{{ csrf_token() }}")
-                out.append('file', file, file.name);
+                    });
 
-                $.ajax({
-                    headers: {
-                        "X-CSRFToken": '{{csrf_field()}}'
-                    },
-                    method: 'POST',
-                    url: '{{route('uploader.store')}}',
-                    contentType: false,
-                    cache: false,
-                    processData: false,
-                    data: out,
-                    success: function (data) {
-                        if (data['status']) {
-                            var url = data['data']['url'];
-                            var id = data['data']['id'];
+                    form.append(`
+                        <input name="specifications" type="hidden" value='${JSON.stringify(specifications)}'>
+                    `);
 
-                            $('#summernote').summernote('insertImage', url, function ($image) {
-                                $image.attr('data-id', id);
-                            });
-                        } else {
-                            showFailedMessage()
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error(textStatus + " " + errorThrown);
-                        showFailedMessage()
-                    }
+                    $('#form').submit();
                 });
-            }
-
-            function deleteFile(id) {
-                var url = '{{ route('uploader.destroy', ":id") }}';
-                url = url.replace(':id', id);
-
-                $.ajax({
-                    method: 'POST',
-                    dataType: 'JSON',
-                    url: url,
-                    data: {
-                        'id': id,
-                        '_token': '{{ csrf_token() }}',
-                        '_method': 'DELETE',
-                    },
-                    success: function (data) {
-
-                    },
-
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        showFailedMessage()
-                    }
-                });
-            }
         });
     </script>
     @stack('scripts')

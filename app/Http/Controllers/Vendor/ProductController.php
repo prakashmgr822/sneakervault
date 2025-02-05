@@ -18,6 +18,7 @@ class ProductController extends BaseController
         parent::__construct();
         $this->route = 'products.';
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -55,14 +56,14 @@ class ProductController extends BaseController
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'image' => 'required',
-        ]);
+        if ($request->specifications) {
+            $request['specifications'] = json_decode($request->specifications, true);
+        }
 
         $data = $request->all();
         $product = new Product($data);
@@ -78,7 +79,7 @@ class ProductController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -91,7 +92,7 @@ class ProductController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -104,12 +105,15 @@ class ProductController extends BaseController
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
     {
+        if ($request->specifications) {
+            $request['specifications'] = json_decode($request->specifications, true);
+        }
         $data = $request->all();
         $product = Product::findOrFail($id);
         $product->update($data);
@@ -124,7 +128,7 @@ class ProductController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)

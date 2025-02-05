@@ -1,4 +1,3 @@
-
 <div class="form-group row">
     <div class="col-6">
         <label for="">Name <span class="text-danger">*</span></label>
@@ -19,13 +18,25 @@
                placeholder="Enter Vendor's Email Address">
     </div>
     <div class="col-6">
-        <label for="">Password <span class="text-danger">*</span></label>
+        {{--        <label for="">Password <span class="text-danger">*</span></label>--}}
+        {{--        <div style="position: relative">--}}
+        {{--            <input type="password" name="password" class="form-control pr-5" placeholder="Enter Password"--}}
+        {{--                   autocomplete="current-password" @if(isset($password))value="{{ old('password',$password) }}"--}}
+        {{--                   @endif required id="password">--}}
+        {{--            <span class="far fa-eye" id="togglePassword"--}}
+        {{--                  style="position: absolute; top: 13px; right: 13px; cursor: pointer;"></span>--}}
+        {{--        </div>--}}
+        <label for="">Password @if($routeName == "Create") * @endif</label>
         <div style="position: relative">
             <input type="password" name="password" class="form-control pr-5" placeholder="Enter Password"
-                   autocomplete="current-password" @if(isset($password))value="{{ old('password',$password) }}"
-                   @endif required id="password">
+                   autocomplete="current-password" @if(isset($password))
+                   @endif @if($routeName == "Create") required @endif id="password">
             <span class="far fa-eye" id="togglePassword"
                   style="position: absolute; top: 13px; right: 13px; cursor: pointer;"></span>
+
+            @if($routeName == "Edit")
+                <span class="text-muted">Leave Blank To Remain Unchanged</span>
+            @endif
         </div>
     </div>
 </div>

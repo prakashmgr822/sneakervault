@@ -28,7 +28,6 @@ class VendorController extends BaseController
      */
     public function index(Request $request)
     {
-
         if ($request->ajax()) {
             $data = Vendor::orderBy('id', 'DESC')->get();
             return DataTables::of($data)
@@ -54,6 +53,7 @@ class VendorController extends BaseController
     public function create()
     {
         $info = $this->crudInfo();
+        $info['routeName'] = "Create";
         return view($this->createResource(), $info);
     }
 
@@ -73,13 +73,13 @@ class VendorController extends BaseController
 
         $data = $request->all();
         $vendor = new Vendor($data);
-        $vendor->password = bcrypt('password');
+        $vendor->password = bcrypt($data['password']);
         $vendor->save();
         if ($request->image) {
             $vendor->addMediaFromRequest('image')
                 ->toMediaCollection();
         }
-        return redirect()->route($this->indexRoute());
+        return redirect()->route($this->indexRoute())->with('success', 'Vendor added successfully.');
     }
 
     /**
@@ -105,16 +105,34 @@ class VendorController extends BaseController
     {
         $info = $this->crudInfo();
         $info['item'] = Vendor::findOrFail($id);
-        $info['password'] = Crypt::decryptString($info['item']->password);
+        $info['routeName'] = "Edit";
         return view($this->editResource(), $info);
     }
 
     /**
      * Update the specified resource in storage.
+     * @param Request $request
+     * @param $id
+     * @return
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required',
+        ]);
+        $vendor = Vendor::findOrFail($id);
+        $vendor->name = $request->get('name');
+        $vendor->email = $request->get('email');
+        $vendor->phone = $request->get('phone');
+        $vendor->description = $request->get('description');
+        $vendor->update();
+        if ($request->image) {
+            $vendor->clearMediaCollection();
+            $vendor->addMediaFromRequest('image')
+                ->toMediaCollection();
+        }
+        return redirect()->route($this->indexRoute())->with('success', 'Vendor updated successfully.');;
     }
 
     /**
@@ -124,16 +142,11 @@ class VendorController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $data = $request->all();
         $vendor = Vendor::findOrFail($id);
-        $vendor->update($data);
-        if ($request->image) {
-            $vendor->clearMediaCollection();
-            $vendor->addMediaFromRequest('image')
-                ->toMediaCollection();
-        }
-        return redirect()->route($this->indexRoute());
+        $vendor->clearMediaCollection();
+        $vendor->delete();
+        return redirect()->route($this->indexRoute())->with('success', 'Vendor deleted successfully.');;
     }
 }

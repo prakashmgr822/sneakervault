@@ -13,8 +13,6 @@ class Vendor extends Authenticatable implements HasMedia
 {
     use InteractsWithMedia;
 
-
-
     protected $fillable = [
         'name', 'email', 'password', 'description', 'rating', 'total_sales', 'phone'
     ];
@@ -24,7 +22,7 @@ class Vendor extends Authenticatable implements HasMedia
         'remember_token',
     ];
 
-    public function products(): HasMany
+    public function products()
     {
         return $this->hasMany(Product::class);
     }

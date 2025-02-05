@@ -11,9 +11,10 @@ class Product extends BaseModel
 
     protected $guarded = ['id'];
     protected $appends = ['image_url'];
+    protected $casts = ['specifications' => 'array'];
 
     protected $fillable = [
-        'name', 'description', 'brand', 'size', 'price', 'stock_quantity',
+        'name', 'description', 'brand', 'price', 'stock_quantity', 'specifications'
     ];
 
     function getImageUrlAttribute(){
