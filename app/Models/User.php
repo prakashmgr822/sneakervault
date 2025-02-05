@@ -6,12 +6,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory; use HasRoles, Notifiable;
+    use HasFactory; use HasRoles, Notifiable; use InteractsWithMedia;
+
+    protected $guarded = ['id'];
+    protected $appends = ['image_url'];
 
     /**
      * The attributes that are mass assignable.
@@ -45,5 +49,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    function getImageUrlAttribute(){
+        return $this->getFirstMediaUrl();
     }
 }

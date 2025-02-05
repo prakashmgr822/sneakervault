@@ -24,6 +24,7 @@ Route::post('/login/vendor', [LoginController::class, 'vendorLogin'])->name('ven
 
 Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     Route::get('home', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.home');
+    Route::resource('vendors', \App\Http\Controllers\Admin\VendorController::class);
 });
 
 Route::group(['prefix' => 'vendor', 'middleware' => 'auth:vendor'], function () {
