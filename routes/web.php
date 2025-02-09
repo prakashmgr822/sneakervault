@@ -8,6 +8,7 @@ use App\Http\Controllers\Front\FrontController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [FrontController::class, 'home'])->name('home');
+Route::get('/payment', [FrontController::class, 'payment'])->name('payment');
 
 Route::get('/redirect', function () {
     if (GuardHelper::check() === "vendor") {

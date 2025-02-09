@@ -11,4 +11,8 @@ class FrontController extends Controller
     public function home() {
         return view('welcome');
     }
+
+    public function payment() {
+        return view('front.payment');
+    }
 }
