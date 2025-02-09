@@ -73,7 +73,7 @@ class ProductController extends BaseController
             $product->addMediaFromRequest('image')
                 ->toMediaCollection();
         }
-        return redirect()->route($this->indexRoute());
+        return redirect()->route($this->indexRoute())->with('success', 'Product added successfully.');
     }
 
     /**
@@ -122,7 +122,7 @@ class ProductController extends BaseController
             $product->addMediaFromRequest('image')
                 ->toMediaCollection();
         }
-        return redirect()->route($this->indexRoute());
+        return redirect()->route($this->indexRoute())->with('success', 'Product edited successfully.');
     }
 
     /**
@@ -135,6 +135,6 @@ class ProductController extends BaseController
     {
         $product = Product::findOrFail($id);
         $product->delete();
-        return redirect()->route($this->indexRoute());
+        return redirect()->route($this->indexRoute())->with('success', 'Product deleted successfully.');
     }
 }

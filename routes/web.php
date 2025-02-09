@@ -8,6 +8,9 @@ use App\Http\Controllers\Front\FrontController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [FrontController::class, 'home'])->name('home');
+Route::get('product', [FrontController::class, 'product'])->name('product.home');
+Route::get('product-details/{id}', [FrontController::class, 'productDetails'])->name('product-details');
+Route::get('cart', [FrontController::class, 'cart'])->name('cart');
 
 Route::get('/redirect', function () {
     if (GuardHelper::check() === "vendor") {

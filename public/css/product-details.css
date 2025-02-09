@@ -1,0 +1,5 @@
+.card-img-top {
+    height: 300px; /* Set a fixed height */
+    object-fit: cover; /* Ensure the image covers the space and maintains aspect ratio */
+    box-shadow: 0 0 8px 3px rgba(0, 0, 0, 0.2); /* Blur effect */
+}

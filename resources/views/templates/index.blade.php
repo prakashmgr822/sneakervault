@@ -9,7 +9,6 @@
 
 @section('css')
     @stack('styles')
-
 @stop
 
 @section('js')

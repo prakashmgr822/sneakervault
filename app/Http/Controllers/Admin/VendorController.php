@@ -147,6 +147,6 @@ class VendorController extends BaseController
         $vendor = Vendor::findOrFail($id);
         $vendor->clearMediaCollection();
         $vendor->delete();
-        return redirect()->route($this->indexRoute())->with('success', 'Vendor deleted successfully.');;
+        return redirect()->route($this->indexRoute())->with('success', 'Vendor deleted successfully.');
     }
 }
