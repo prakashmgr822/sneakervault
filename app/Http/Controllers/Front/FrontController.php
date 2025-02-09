@@ -34,4 +34,8 @@ class FrontController extends Controller
     public function cart() {
         return view('front/cart');
     }
+
+    public function payment() {
+        return view('front.payment');
+    }
 }
