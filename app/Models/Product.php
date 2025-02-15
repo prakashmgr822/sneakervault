@@ -23,8 +23,9 @@ class Product extends BaseModel
 
 
 
-    public function vendor(): BelongsTo
+    public function vendor()
     {
         return $this->belongsTo(Vendor::class);
     }
+
 }

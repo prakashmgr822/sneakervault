@@ -8,6 +8,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{{asset('css/style.css')}}">
+    <link rel="stylesheet" href="{{asset('css/product.css')}}">
 
 @endsection
 
@@ -24,10 +25,7 @@
                         Passion for Sneaker
                     </div>
                     <div class="text-hero-regular">
-                        It is a long established fact that a reader will be distracted by the readable content of a page
-                        when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal
-                        distribution of letters, as opposed to using 'Content here, content here', making it look like
-                        readable English.
+                        Discover the perfect blend of fashion, comfort, and exclusivity at SneakerVault. Whether you're chasing the latest drops, hunting for rare finds, or looking for everyday essentials, we've got you covered. Elevate your sneaker game with our handpicked collection of authentic, high-quality kicks. Your style, your vault—unlock it today!
                     </div>
                     <div class="cta flex-fill">
                         <a href="{{route('product.home')}}" class="btn btn-primary ">Explore Now</a>
@@ -43,52 +41,68 @@
 
     <!-- Featured Products -->
     <section class="product">
-        <div class="container pt-5 ">
-            <div class="row justify-content-md-between">
+        <div class="container pt-4">
+            <div class="row mb-5">
                 <div class="col-md-12">
                     <div class="text-hero-bold text-center">
                         Featured Products
                     </div>
                 </div>
-                <div class="row pt-4 g-5">
-                    @foreach($products as $product)
-                        <div class="col-12 col-sm-6 col-md-4 mb-4">
-                            <div class="card">
-                                @if($product->getImage())
-                                    <div>
-                                        <img src="{{ $product->getImage() }}" alt="image" class="card-img-top img-fluid">
+            </div>
+
+            <hr>
+
+            <div class="row py-4 g-5" id="product-list">  <!-- Product Grid -->
+                @foreach($products as $product)
+                    <div class="col-12 col-sm-6 col-md-4 mb-4 product-item">
+                        <div class="card h-100 shadow-sm">
+                            @if($product->getImage())
+                                <div class="position-relative">
+                                    <img src="{{ $product->getImage() }}" alt="image" class="card-img-top img-fluid" style="height: 250px; object-fit: cover;">
+                                </div>
+                            @endif
+
+                            <div class="card-body d-flex flex-column">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <h5 class="card-title mb-0">{{$product->name}}</h5>
                                     </div>
-                                @endif
-
-
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <h5 class="card-title">{{$product->name}}</h5>
-                                        </div>
-                                        <div class="col-6 text-end">
-                                            <h5 class="card-title text-label-medium" >Nrs. {{$product->price}}</h5>
-                                        </div>
+                                    <div class="col-6 text-end">
+                                        <h5 class="card-title text-label-medium text-primary">Nrs. {{$product->price}}</h5>
                                     </div>
+                                </div>
 
+                                <h6 class="card-subtitle mb-3 text-muted text-label-regular">{{$product->brand}}</h6>
 
-                                    <h6 class="card-subtitle mb-2 text-muted text-label-regular">{{$product->brand}}</h6>
-                                    <div class="row">
+                                <div class="mt-auto">
+                                    <div class="row g-4">
                                         <div class="col-8">
-                                            <a href="{{route('product-details', ['id' => $product->id])}}" class="btn btn-primary w-100">View Details</a>
+                                            <a href="{{ route('product-details', ['id' => $product->id]) }}"
+                                               class="btn btn-primary w-100 d-flex align-items-center justify-content-center"
+                                               style="min-height: 50px;">
+                                                View Details
+                                            </a>
                                         </div>
                                         <div class="col-4">
-                                            <a href="#" class="btn btn-outline-success w-100 ">Add<i class="fa-solid fa-cart-shopping fa-lg" ></i></a>
+                                            <form action="{{ route('addToCart', ['productId' => $product->id]) }}" method="POST">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                                                        style="min-height: 50px;">
+                                                    <i class="fa-solid fa-cart-shopping me-2"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
+                    </div>
+                @endforeach
             </div>
+            <hr>
         </div>
+
     </section>
 @endsection
 

@@ -22,17 +22,19 @@
 
 
 
-    <nav id="desktop-nav ">
+    <nav id="desktop-nav" >
         <div class="logo">SneakerVault</div>
         <!-- <div> -->
         <ul class="nav-links">
             <li><a href="{{route('home')}}">Home</a></li>
             <li><a href="{{route('product.home')}}">Products</a></li>
-            <li><a href="#projects">About</a></li>
+            <li><a href="{{route('about')}}">About</a></li>
         </ul>
         <!-- </div> -->
-        <div>
-            <i class="fa-solid fa-cart-shopping fa-xl"  style="padding: 20px"></i>
+        <div class="d-flex align-items-center gap-3" >
+
+
+            <i class="fa-solid fa-cart-shopping fa-xl" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer" ></i>
             @if(auth()->user())
                 <form id="logout-form" action="{{route('logout')}}" method="POST">
                     {{ csrf_field() }}
@@ -45,17 +47,46 @@
             @endif
         </div>
     </nav>
+
+    <nav id="hamburger-nav" class="navbar px-3 px-md-5">
+        <div class="logo">SneakerVault</div>
+        <div class="d-flex align-items-center ">
+            <i class="fa-solid fa-cart-shopping fa-xl"  style="padding: 20px"></i>
+            @if(auth()->user())
+                <form id="logout-form" action="{{route('logout')}}" method="POST">
+                    {{ csrf_field() }}
+                    <input type="submit" class="btn btn-outline-dark" value="Logout">
+                </form>
+            @else
+                <a href="{{route('login')}}">
+                    <button type="button" class="btn btn-outline-dark">Login</button>
+                </a>
+            @endif
+        </div>
+        <div class="hamburger-menu">
+            <div class="hamburger-icon" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="menu-links">
+                <li><a href="{{route('product.home')}}" onclick="toggleMenu()">Products</a></li>
+                <li><a href="{{route('about')}}" onclick="toggleMenu()">About</a></li>
+            </div>
+        </div>
+    </nav>
 </header>
 <!-- Hero -->
 @yield('content')
 
 <footer class="footer">
-    <div class="container">
+    <div class="container px-5">
         <div class="row">
-            <div class="col-md-6 text-center text-md-start p-2">
+            <div class="col-md-6 text-center text-md-start ">
                 <div class="logo">SneakerVault</div>
             </div>
-            <div class="col-md-3 text-center text-md-start p-2">
+            <div class="col-md-3 text-center text-md-start">
                 <div class="text-label-medium">About us</div>
                 <div class="text-label-regular">Our Products</div>
                 <div class="text-label-regular">Contact Us</div>
@@ -86,6 +117,23 @@
 
 <script>
     AOS.init();
+</script>
+<script>
+    function toggleMenu() {
+        const menu = document.querySelector(".menu-links");
+        const icon = document.querySelector(".hamburger-icon");
+        menu.classList.toggle("open");
+        icon.classList.toggle("open");
+    }
+</script>
+
+<script>
+
+
+    function redirectToCart() {
+        let isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+        window.location.href = isLoggedIn ? "/cart" : "/login";
+    }
 </script>
 </body>
 </html>

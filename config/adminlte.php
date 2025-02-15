@@ -326,8 +326,22 @@ return [
         [
             'text' => 'Vendor',
             'route' => 'vendors.index',
-            'icon'  => 'nav-icon fas fa-user',
+            'icon'  => 'nav-icon fas fa-store',
             'guard' => 'web',
+        ],
+
+        [
+            'text' => 'Product',
+            'route' => 'admin.products.index',
+            'icon'  => 'nav-icon fas fa-shoe-prints',
+            'guard' => 'web',
+        ],
+
+        [
+            'text' => 'Change Password',
+            'route' => 'admin.change-password',
+            'icon' => 'nav-icon fas fa-lock ',
+            'guard' => 'web'
         ],
 
         //for vendors
@@ -343,6 +357,13 @@ return [
             'route' => 'products.index',
             'icon'  => 'nav-icon fas fa-shoe-prints',
             'guard' => 'vendor',
+        ],
+
+        [
+            'text' => 'Change Password',
+            'route' => 'vendor.change-password',
+            'icon' => 'nav-icon fas fa-lock ',
+            'guard' => 'vendor'
         ],
     ],
 
