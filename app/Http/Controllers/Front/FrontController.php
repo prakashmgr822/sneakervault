@@ -58,9 +58,30 @@ class FrontController extends Controller
         return response()->json($products);
     }
 
+    // Function to get the total cart count
+    public function getCartCount()
+    {
+        $userId = auth()->id();
+        $cartCount = Cart::session($userId)->getContent();
+        $uniqueProductCount = $cartCount->count();
+        return response()->json([
+            'count' => $uniqueProductCount > 0 ? $uniqueProductCount : 0
+        ]);
+    }
+
     public function cart()
     {
         $userId = auth()->id() ?? session()->getId(); // Use user ID if logged in, else session ID
+        $savedCart = \App\Models\Cart::where('user_id', $userId)->first();
+
+        if ($savedCart) {
+            Cart::session($userId)->clear();
+
+            foreach ($savedCart->cart_data as $item) {
+                Cart::session($userId)->add($item);
+            }
+        }
+
         $cartItems = Cart::session($userId)->getContent(); // Fetch cart items
         $total = Cart::session($userId)->getTotal();
 
@@ -93,6 +114,14 @@ class FrontController extends Controller
             ]
         ]);
 
+        // Save the cart to database
+        $cart = Cart::session($userId)->getContent()->toArray();
+
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
+
 
         return redirect('cart')->with('success', 'Product added to cart!');
     }
@@ -103,6 +132,9 @@ class FrontController extends Controller
         $userId = auth()->id() ?? session()->getId();
         Cart::session($userId)->clear();
 
+        // Remove from database
+        Cart::where('user_id', $userId)->delete();
+
         return redirect()->route('cart')->with('success', 'Cart cleared successfully.');
     }
 
@@ -111,6 +143,13 @@ class FrontController extends Controller
         $userId = auth()->id() ?? session()->getId();
         Cart::session($userId)->remove($id);
 
+        // Save updated cart to database
+        $cart = Cart::session($userId)->getContent()->toArray();
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
+
         return redirect()->route('cart')->with('success', 'Item removed from cart.');
     }
 
@@ -118,6 +157,14 @@ class FrontController extends Controller
     {
         $userId = auth()->id() ?? session()->getId();
         Cart::session($userId)->update($id, ['quantity' => 1]);
+
+        // Save the cart to database
+        $cart = Cart::session($userId)->getContent()->toArray();
+
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
 
         return redirect()->route('cart');
     }
@@ -132,6 +179,14 @@ class FrontController extends Controller
         } else {
             Cart::session($userId)->remove($id);
         }
+
+        // Save the cart to database
+        $cart = Cart::session($userId)->getContent()->toArray();
+
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
 
         return redirect()->route('cart');
     }

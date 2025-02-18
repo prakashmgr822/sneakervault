@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cart extends Model
 {
-    protected $fillable = [
-        'quantity', 'user_id', 'product'
+    protected $fillable = ['user_id', 'cart_data'];
+
+    protected $casts = [
+        'cart_data' => 'array', // Convert JSON to array automatically
     ];
 
     public function user()

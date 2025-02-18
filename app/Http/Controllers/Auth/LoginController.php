@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\Cart;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -105,4 +106,6 @@ class LoginController extends Controller
             return back()->with('emailError', 'Oops! You have entered an invalid email for vendor. Please try again.');
         }
     }
+
+
 }

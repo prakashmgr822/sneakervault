@@ -34,7 +34,12 @@
         <div class="d-flex align-items-center gap-3" >
 
 
-            <i class="fa-solid fa-cart-shopping fa-xl" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer" ></i>
+            <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer; position: relative;" >
+               <span id="cart-badge" class="badge bg-danger rounded-pill position-absolute"
+                     style="top: -1px;  font-size: 10px; padding: 4px 6px; display: none;">
+        0
+    </span>
+            </i>
             @if(auth()->user())
                 <form id="logout-form" action="{{route('logout')}}" method="POST">
                     {{ csrf_field() }}
@@ -51,7 +56,9 @@
     <nav id="hamburger-nav" class="navbar px-3 px-md-5">
         <div class="logo">SneakerVault</div>
         <div class="d-flex align-items-center ">
-            <i class="fa-solid fa-cart-shopping fa-xl"  style="padding: 20px"></i>
+            <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer; position: relative" >
+                <span id="cart-count" class="position-absolute top-100 start-100 translate-middle badge rounded-pill bg-danger" >0</span>
+            </i>
             @if(auth()->user())
                 <form id="logout-form" action="{{route('logout')}}" method="POST">
                     {{ csrf_field() }}
@@ -129,11 +136,32 @@
 
 <script>
 
-
     function redirectToCart() {
         let isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
         window.location.href = isLoggedIn ? "/cart" : "/login";
     }
+
+    function updateCartCount() {
+        fetch('/cart/count')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Cart count received:", data.count); // Debug log
+
+                let cartBadge = document.getElementById('cart-badge');
+                if (cartBadge) {
+                    console.log("Found cart-badge element"); // Debug log
+                    cartBadge.innerText = data.count; // Update count
+                    cartBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                } else {
+                    console.error("cart-badge element NOT found!");
+                }
+            })
+            .catch(error => console.error('Error fetching cart count:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCartCount);
+
+
 </script>
 </body>
 </html>

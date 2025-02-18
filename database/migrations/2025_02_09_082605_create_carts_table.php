@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('user_id');
-            $table->string('quantity');
+            $table->json('cart_data'); // Store cart items as JSON
             $table->timestamps();
         });
     }

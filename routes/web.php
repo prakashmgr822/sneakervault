@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Front\FrontController;
+use Darryldecode\Cart\Cart;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [FrontController::class, 'home'])->name('home');
@@ -14,6 +15,7 @@ Route::get('/search-products', [FrontController::class, 'searchProducts'])->name
 
 Route::get('product-details/{id}', [FrontController::class, 'productDetails'])->name('product-details');
 Route::get('cart', [FrontController::class, 'cart'])->name('cart');
+Route::get('/cart/count', [FrontController::class, 'getCartCount'])->name('cart.count');
 Route::post('/cart/add/{productId}', [FrontController::class, 'addToCart'])->name('addToCart');
 Route::get('/cart/clear', [FrontController::class, 'clearCart'])->name('clear.cart');
 Route::get('/cart/remove/{id}', [FrontController::class, 'removeItem'])->name('remove.item');
