@@ -5,7 +5,7 @@
                placeholder="Enter Name">
     </div>
     <div class="col-6">
-        <label for="">Brand</label>
+        <label for="">Brand <span class="text-danger">*</span></label>
         <input type="text" required class="form-control" name="brand" value="{{ old('brand',$item->brand) }}"
                placeholder="Enter Product Brand">
     </div>

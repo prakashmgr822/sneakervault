@@ -47,7 +47,7 @@
         <div class="col-md-12">
 
 
-            @if($item->specification)
+            @if(!$item->specifications)
                 <div class="alert btn-danger" role="alert">
                     <i class="fa fa-info-circle mr-2 text-white"></i> No specification
                 </div>

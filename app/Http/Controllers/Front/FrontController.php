@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 
 use App\Models\Product;
+use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use App\Models\Cart as ModelCart;
 use function PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\datedifD;
 
 class FrontController extends Controller
@@ -83,9 +85,31 @@ class FrontController extends Controller
         }
 
         $cartItems = Cart::session($userId)->getContent(); // Fetch cart items
+        try {
+            $condition1 = new \Darryldecode\Cart\CartCondition(array(
+                'name' => 'VAT 12.5%',
+                'type' => 'tax',
+                'target' => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                'value' => '12.5%'
+            ));
+            $condition2 = new \Darryldecode\Cart\CartCondition(array(
+                'name' => 'Shipping Cost',
+                'type' => 'shipping',
+                'target' => 'subtotal', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                'value' => '15'
+            ));
+            Cart::condition([$condition1]);
+            Cart::condition([$condition2]);
+        } catch (InvalidConditionException $e) {
+            error_log("cart_error", $e->getMessage());
+        }
+
+        $tax = Cart::getCondition('VAT 12.5%');
+        $shipping = Cart::getCondition('Shipping Cost');
+        $subTotal = Cart::session($userId)->getSubTotal();
         $total = Cart::session($userId)->getTotal();
 
-        return view('front/cart', compact('cartItems', 'total')); // Pass to view
+        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total')); // Pass to view
     }
 
     /**
@@ -133,7 +157,7 @@ class FrontController extends Controller
         Cart::session($userId)->clear();
 
         // Remove from database
-        Cart::where('user_id', $userId)->delete();
+        ModelCart::where('user_id', $userId)->delete();
 
         return redirect()->route('cart')->with('success', 'Cart cleared successfully.');
     }
@@ -156,7 +180,33 @@ class FrontController extends Controller
     public function increaseQuantity($id)
     {
         $userId = auth()->id() ?? session()->getId();
-        Cart::session($userId)->update($id, ['quantity' => 1]);
+//        $item = Cart::session($userId)->update($id, ['quantity' => 1]);
+        $item = Cart::session($userId)->get($id);
+        $product = Product::find($id);
+
+        // Check if product exists
+        if (!$product) {
+            return redirect()->route('cart')->with('error', 'Product not found.');
+        }
+
+        // Check if the item exists in the cart
+        if (!$item) {
+            return redirect()->route('cart')->with('error', 'Item not found in cart.');
+        }
+
+        // Check if increasing quantity exceeds stock
+        if ($item->quantity + 1 > $product->stock_quantity) {
+            return redirect()->route('cart')->with('error', 'Not enough stock available for '. $product->name .'.');
+        }
+
+        // Attempt to update quantity
+        $updated = Cart::session($userId)->update($id, [
+            'quantity' => ['relative' => true, 'value' => 1]
+        ]);
+
+        if (!$updated) {
+            return redirect()->route('cart')->with('error', 'Failed to update quantity.');
+        }
 
         // Save the cart to database
         $cart = Cart::session($userId)->getContent()->toArray();
