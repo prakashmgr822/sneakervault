@@ -40,6 +40,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('cart', [FrontController::class, 'cart'])->name('cart');
     Route::get('/cart/count', [FrontController::class, 'getCartCount'])->name('cart.count');
     Route::post('/cart/add/{productId}', [FrontController::class, 'addToCart'])->name('addToCart');
+    Route::post('/cart/size/update/{id}', [FrontController::class, 'updateSize'])->name('update.size');
     Route::get('/cart/clear', [FrontController::class, 'clearCart'])->name('clear.cart');
     Route::get('/cart/remove/{id}', [FrontController::class, 'removeItem'])->name('remove.item');
     Route::get('/cart/increase/{id}', [FrontController::class, 'increaseQuantity'])->name('add.quantity');

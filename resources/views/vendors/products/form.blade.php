@@ -38,6 +38,15 @@
     </div>
 </div>
 
+<div class="form-group row">
+    <div class="col-md-12">
+        <label for="sizes">Sizes</label>
+        <input type="text" name="sizes" class="form-control"
+               value="{{ old('sizes', $item->sizes) }}"
+               placeholder="Enter sizes separated by commas (e.g., S,M,L,XL or 35,36,37)">
+    </div>
+</div>
+
 <div class="card card-custom  my-8">
     <div class="card-header">
         <h3 class="card-title">

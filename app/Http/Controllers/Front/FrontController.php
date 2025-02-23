@@ -119,23 +119,79 @@ class FrontController extends Controller
      * @param $productId
      * @return \Illuminate\Http\Response
      */
-    public function addToCart($productId)
+//    public function addToCart(Request $request, $productId)
+//    {
+//        $product = Product::findOrFail($request->product_id);
+//
+//        // Use the authenticated user's ID or fallback to the session ID for guests
+//        $userId = auth()->check() ? auth()->id() : session()->getId();
+//
+//
+//        // Use the user's session to store the cart
+//        Cart::session($userId)->add([
+//            'id'       => $product->id,
+//            'name'     => $product->name,
+//            'price'    => $product->price,
+//            'quantity' => 1,
+//            'attributes' => [
+//                'image'      => $product->getImage(),
+//                'size'       => $request->get('size')
+//            ]
+//        ]);
+//
+//        // Save the cart to database
+//        $cart = Cart::session($userId)->getContent()->toArray();
+//
+//        \App\Models\Cart::updateOrCreate(
+//            ['user_id' => $userId],
+//            ['cart_data' => $cart]
+//        );
+//
+//
+//        return redirect('cart')->with('success', 'Product added to cart!');
+//    }
+
+    public function addToCart(Request $request, $productId)
     {
         $product = Product::findOrFail($productId);
-
-        // Use the authenticated user's ID or fallback to the session ID for guests
         $userId = auth()->check() ? auth()->id() : session()->getId();
+        $size = trim($request->get('size')); // Trim input to remove spaces
 
+        // Fetch available sizes from the product and convert to array
+        $availableSizes = explode(',', $product->sizes);
+        $availableSizes = array_map('trim', $availableSizes); // Ensure no extra spaces
 
-        // Use the user's session to store the cart
+        // Validate if the selected size exists
+        if (!in_array($size, $availableSizes)) {
+            return redirect()->back()->with('error', 'Invalid size selection.');
+        }
+
+        // Ensure unique cart ID (Product ID + Size)
+        $cartId = $product->id . '-' . $size;
+
+        // Check if the product with the same size already exists in the cart
+        $cartItems = Cart::session($userId)->getContent();
+        $existingItem = $cartItems->firstWhere('id', $cartId);
+
+        if ($existingItem) {
+            // Update quantity if the same size exists
+            Cart::session($userId)->update($cartId, [
+                'quantity' => 1,
+            ]);
+            return redirect('cart')->with('success', 'Product quantity updated!');
+        }
+
+        // Add new entry with unique ID and store available sizes
         Cart::session($userId)->add([
-            'id'       => $product->id,
+            'id'       => $cartId,
             'name'     => $product->name,
             'price'    => $product->price,
             'quantity' => 1,
             'attributes' => [
-                'image'      => $product->getImage(),
-            ]
+                'image' => $product->getImage(),
+                'size'  => $size,
+                'sizes' => $product->sizes, // Store all sizes for later use
+            ],
         ]);
 
         // Save the cart to database
@@ -146,9 +202,64 @@ class FrontController extends Controller
             ['cart_data' => $cart]
         );
 
-
         return redirect('cart')->with('success', 'Product added to cart!');
     }
+
+
+    public function updateSize(Request $request, $itemId)
+    {
+        $userId = auth()->check() ? auth()->id() : session()->getId();
+        $size = trim($request->get('size'));
+
+        // Get cart items
+        $cartItems = Cart::session($userId)->getContent();
+        $oldItem = $cartItems->firstWhere('id', $itemId);
+
+        if (!$oldItem) {
+            return redirect('cart')->with('error', 'Item not found.');
+        }
+
+        // Extract product ID (removing size part)
+        $productId = explode('-', $oldItem->id)[0];
+
+        // Ensure the new size exists in the product's available sizes
+        $availableSizes = explode(',', $oldItem->attributes->sizes);
+        $availableSizes = array_map('trim', $availableSizes); // Trim spaces
+
+        if (!in_array($size, $availableSizes)) {
+            return redirect()->back()->with('error', 'Invalid size selection.');
+        }
+
+        // Remove old item (correct ID)
+        Cart::session($userId)->remove($oldItem->id);
+
+        // Generate new cart ID
+        $newCartId = $productId . '-' . $size;
+
+        // Add updated item
+        Cart::session($userId)->add([
+            'id'       => $newCartId,
+            'name'     => $oldItem->name,
+            'price'    => $oldItem->price,
+            'quantity' => $oldItem->quantity,
+            'attributes' => [
+                'image' => $oldItem->attributes->image,
+                'size'  => $size,
+                'sizes' => $oldItem->attributes->sizes, // Keep available sizes
+            ],
+        ]);
+
+        // Save the updated cart to the database
+        $cart = Cart::session($userId)->getContent()->toArray();
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
+
+        return redirect('cart')->with('success', 'Size updated successfully!');
+    }
+
+
 
 
     public function clearCart()

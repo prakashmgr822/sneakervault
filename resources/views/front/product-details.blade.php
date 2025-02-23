@@ -48,6 +48,17 @@
                     </h4>
                     <hr style="border-top: 1px solid #ccc;">
 
+                    @if($product->sizes)
+                        <p class="mb-3">
+                            <strong style="color: #555;">Choose a size:</strong>
+                            <select id="sizes" class="form-control">
+                                @foreach(explode(',', $product->sizes) as $size)
+                                    <option value="{{ trim($size) }}">{{ trim($size) }}</option>
+                                @endforeach
+                            </select>
+                        </p>
+                    @endif
+
                     @if($product->description)
                         <p class="mb-1">
                             <strong style="color: #555;">Description:</strong> {{ $product->description }}
@@ -88,6 +99,7 @@
                 <!-- Add to Cart Button -->
                     <form action="{{ route('addToCart', ['productId' => $product->id]) }}" method="POST">
                         @csrf
+                        <input type="hidden" name="size" id="size">
                         <button type="submit"
                                 class="btn btn-success w-100 d-flex align-items-center justify-content-center"
                                 style="min-height: 50px;">
@@ -100,6 +112,17 @@
     </section>
 @endsection
 
-@section('script')
+@section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(document).ready(function() {
+            // Set the initial value
+            $('#size').val($('#sizes').val());
 
+            // Update hidden input when dropdown changes
+            $('#sizes').on('change', function () {
+                $('#size').val($(this).val());
+            });
+        });
+    </script>
 @endsection

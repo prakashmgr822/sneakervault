@@ -20,6 +20,7 @@ return new class extends Migration
             $table->float('price');
             $table->float('stock_quantity')->nullable();
             $table->json('specifications')->nullable();
+            $table->string('sizes')->nullable();
             $table->timestamps();
         });
     }

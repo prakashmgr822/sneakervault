@@ -51,7 +51,9 @@
                                                  class="border rounded me-3"
                                                  style="width: 96px; height: 96px"/>
                                             <div>
-                                                <p class="mb-1">{{ $item->name }}</p>
+                                                <p class="mb-1 fw-bold">{{ $item->name }}</p>
+                                                @if($item->attributes->size) <p class="text-muted mb-0">Size:
+                                                    <strong>{{ $item->attributes->size }}</strong></p> @endif
                                                 <p class="text-muted mb-0">Nrs. {{ number_format($item->price, 2) }}</p>
                                             </div>
                                         </div>
@@ -73,6 +75,18 @@
                                     </div>
 
                                     <div class="col-lg-3 text-lg-end">
+                                        <form action="{{ route('update.size', $item->id) }}" method="POST">
+                                            @csrf
+                                            <select name="size" class="form-select form-select-sm d-inline w-auto">
+                                                @foreach(explode(',', $item->attributes->sizes) as $sizeOption)
+                                                    <option
+                                                        value="{{ trim($sizeOption) }}" {{ $item->attributes->size == trim($sizeOption) ? 'selected' : '' }}>
+                                                        {{ trim($sizeOption) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                        </form>
                                         <a href="{{ route('remove.item', $item->id) }}"
                                            class="btn btn-danger">Remove</a>
                                     </div>
