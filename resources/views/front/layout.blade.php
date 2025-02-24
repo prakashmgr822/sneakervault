@@ -7,7 +7,9 @@
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
     {{--    fontawesome--}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+          integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
     <!-- Aos animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -21,8 +23,7 @@
 <header>
 
 
-
-    <nav id="desktop-nav" >
+    <nav id="desktop-nav">
         <div class="logo">SneakerVault</div>
         <!-- <div> -->
         <ul class="nav-links">
@@ -31,33 +32,35 @@
             <li><a href="{{route('about')}}">About</a></li>
         </ul>
         <!-- </div> -->
-        <div class="d-flex align-items-center gap-3" >
-
-
-            <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer; position: relative;" >
+        <div class="d-flex align-items-center gap-3">
+            @if(auth()->user())
+                <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()"
+                   style="padding: 20px; cursor: pointer; position: relative;">
                <span id="cart-badge" class="badge bg-danger rounded-pill position-absolute"
                      style="top: -1px;  font-size: 10px; padding: 4px 6px; display: none;">
-        0
+                   @endif
     </span>
-            </i>
-            @if(auth()->user())
-                <form id="logout-form" action="{{route('logout')}}" method="POST">
-                    {{ csrf_field() }}
-                    <input type="submit" class="btn btn-outline-dark" value="Logout">
-                </form>
-            @else
-                <a href="{{route('login')}}">
-                    <button type="button" class="btn btn-outline-dark">Login</button>
-                </a>
-            @endif
+                </i>
+                @if(auth()->user())
+                    <form id="logout-form" action="{{route('logout')}}" method="POST">
+                        {{ csrf_field() }}
+                        <input type="submit" class="btn btn-outline-dark" value="Logout">
+                    </form>
+                @else
+                    <a href="{{route('login')}}">
+                        <button type="button" class="btn btn-outline-dark">Login</button>
+                    </a>
+                @endif
         </div>
     </nav>
 
     <nav id="hamburger-nav" class="navbar px-3 px-md-5">
         <div class="logo">SneakerVault</div>
         <div class="d-flex align-items-center ">
-            <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()" style="padding: 20px; cursor: pointer; position: relative" >
-                <span id="cart-count" class="position-absolute top-100 start-100 translate-middle badge rounded-pill bg-danger" >0</span>
+            <i class="fa-solid fa-cart-shopping fa-xl position-relative" id="cart" onclick="redirectToCart()"
+               style="padding: 20px; cursor: pointer; position: relative">
+                <span id="cart-count"
+                      class="position-absolute top-100 start-100 translate-middle badge rounded-pill bg-danger">0</span>
             </i>
             @if(auth()->user())
                 <form id="logout-form" action="{{route('logout')}}" method="POST">

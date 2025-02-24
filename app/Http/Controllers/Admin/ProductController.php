@@ -63,11 +63,19 @@ class ProductController extends BaseController
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'sizes' => 'nullable|string'
+        ]);
         if ($request->specifications) {
             $request['specifications'] = json_decode($request->specifications, true);
         }
 
         $data = $request->all();
+
+        if ($request->sizes) {
+            $data['sizes'] = implode(', ', array_map('trim', explode(',', $request->sizes)));
+        }
+
         $product = new Product($data);
         $product->vendor_id = auth('vendor')->user()->id;
         $product->save();
@@ -113,10 +121,19 @@ class ProductController extends BaseController
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'sizes' => 'nullable|string',
+        ]);
+
         if ($request->specifications) {
             $request['specifications'] = json_decode($request->specifications, true);
         }
+
         $data = $request->all();
+
+        if ($request->sizes) {
+            $data['sizes'] = implode(', ', array_map('trim', explode(',', $request->sizes)));
+        }
         $product = Product::findOrFail($id);
         $product->update($data);
         if ($request->image) {

@@ -5,7 +5,7 @@
                placeholder="Enter Name">
     </div>
     <div class="col-6">
-        <label for="">Brand</label>
+        <label for="">Brand <span class="text-danger">*</span></label>
         <input type="text" required class="form-control" name="brand" value="{{ old('brand',$item->brand) }}"
                placeholder="Enter Product Brand">
     </div>
@@ -35,6 +35,15 @@
                 <img src="{{ $item->getImage() }}" alt="image" width="300px" height="300px">
             </div>
         @endif
+    </div>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-12">
+        <label for="sizes">Sizes</label>
+        <input type="text" name="sizes" class="form-control"
+               value="{{ old('sizes', $item->sizes) }}"
+               placeholder="Enter sizes separated by commas (e.g., S,M,L,XL or 35,36,37)">
     </div>
 </div>
 

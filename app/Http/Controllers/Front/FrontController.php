@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 
 use App\Models\Product;
+use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use App\Models\Cart as ModelCart;
 use function PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\datedifD;
 
 class FrontController extends Controller
@@ -83,9 +85,31 @@ class FrontController extends Controller
         }
 
         $cartItems = Cart::session($userId)->getContent(); // Fetch cart items
+        try {
+            $condition1 = new \Darryldecode\Cart\CartCondition(array(
+                'name' => 'VAT 12.5%',
+                'type' => 'tax',
+                'target' => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                'value' => '12.5%'
+            ));
+            $condition2 = new \Darryldecode\Cart\CartCondition(array(
+                'name' => 'Shipping Cost',
+                'type' => 'shipping',
+                'target' => 'subtotal', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                'value' => '15'
+            ));
+            Cart::condition([$condition1]);
+            Cart::condition([$condition2]);
+        } catch (InvalidConditionException $e) {
+            error_log("cart_error", $e->getMessage());
+        }
+
+        $tax = Cart::getCondition('VAT 12.5%');
+        $shipping = Cart::getCondition('Shipping Cost');
+        $subTotal = Cart::session($userId)->getSubTotal();
         $total = Cart::session($userId)->getTotal();
 
-        return view('front/cart', compact('cartItems', 'total')); // Pass to view
+        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total')); // Pass to view
     }
 
     /**
@@ -95,23 +119,79 @@ class FrontController extends Controller
      * @param $productId
      * @return \Illuminate\Http\Response
      */
-    public function addToCart($productId)
+//    public function addToCart(Request $request, $productId)
+//    {
+//        $product = Product::findOrFail($request->product_id);
+//
+//        // Use the authenticated user's ID or fallback to the session ID for guests
+//        $userId = auth()->check() ? auth()->id() : session()->getId();
+//
+//
+//        // Use the user's session to store the cart
+//        Cart::session($userId)->add([
+//            'id'       => $product->id,
+//            'name'     => $product->name,
+//            'price'    => $product->price,
+//            'quantity' => 1,
+//            'attributes' => [
+//                'image'      => $product->getImage(),
+//                'size'       => $request->get('size')
+//            ]
+//        ]);
+//
+//        // Save the cart to database
+//        $cart = Cart::session($userId)->getContent()->toArray();
+//
+//        \App\Models\Cart::updateOrCreate(
+//            ['user_id' => $userId],
+//            ['cart_data' => $cart]
+//        );
+//
+//
+//        return redirect('cart')->with('success', 'Product added to cart!');
+//    }
+
+    public function addToCart(Request $request, $productId)
     {
         $product = Product::findOrFail($productId);
-
-        // Use the authenticated user's ID or fallback to the session ID for guests
         $userId = auth()->check() ? auth()->id() : session()->getId();
+        $size = trim($request->get('size')); // Trim input to remove spaces
 
+        // Fetch available sizes from the product and convert to array
+        $availableSizes = explode(',', $product->sizes);
+        $availableSizes = array_map('trim', $availableSizes); // Ensure no extra spaces
 
-        // Use the user's session to store the cart
+        // Validate if the selected size exists
+        if (!in_array($size, $availableSizes)) {
+            return redirect()->back()->with('error', 'Invalid size selection.');
+        }
+
+        // Ensure unique cart ID (Product ID + Size)
+        $cartId = $product->id . '-' . $size;
+
+        // Check if the product with the same size already exists in the cart
+        $cartItems = Cart::session($userId)->getContent();
+        $existingItem = $cartItems->firstWhere('id', $cartId);
+
+        if ($existingItem) {
+            // Update quantity if the same size exists
+            Cart::session($userId)->update($cartId, [
+                'quantity' => 1,
+            ]);
+            return redirect('cart')->with('success', 'Product quantity updated!');
+        }
+
+        // Add new entry with unique ID and store available sizes
         Cart::session($userId)->add([
-            'id'       => $product->id,
+            'id'       => $cartId,
             'name'     => $product->name,
             'price'    => $product->price,
             'quantity' => 1,
             'attributes' => [
-                'image'      => $product->getImage(),
-            ]
+                'image' => $product->getImage(),
+                'size'  => $size,
+                'sizes' => $product->sizes, // Store all sizes for later use
+            ],
         ]);
 
         // Save the cart to database
@@ -122,9 +202,64 @@ class FrontController extends Controller
             ['cart_data' => $cart]
         );
 
-
         return redirect('cart')->with('success', 'Product added to cart!');
     }
+
+
+    public function updateSize(Request $request, $itemId)
+    {
+        $userId = auth()->check() ? auth()->id() : session()->getId();
+        $size = trim($request->get('size'));
+
+        // Get cart items
+        $cartItems = Cart::session($userId)->getContent();
+        $oldItem = $cartItems->firstWhere('id', $itemId);
+
+        if (!$oldItem) {
+            return redirect('cart')->with('error', 'Item not found.');
+        }
+
+        // Extract product ID (removing size part)
+        $productId = explode('-', $oldItem->id)[0];
+
+        // Ensure the new size exists in the product's available sizes
+        $availableSizes = explode(',', $oldItem->attributes->sizes);
+        $availableSizes = array_map('trim', $availableSizes); // Trim spaces
+
+        if (!in_array($size, $availableSizes)) {
+            return redirect()->back()->with('error', 'Invalid size selection.');
+        }
+
+        // Remove old item (correct ID)
+        Cart::session($userId)->remove($oldItem->id);
+
+        // Generate new cart ID
+        $newCartId = $productId . '-' . $size;
+
+        // Add updated item
+        Cart::session($userId)->add([
+            'id'       => $newCartId,
+            'name'     => $oldItem->name,
+            'price'    => $oldItem->price,
+            'quantity' => $oldItem->quantity,
+            'attributes' => [
+                'image' => $oldItem->attributes->image,
+                'size'  => $size,
+                'sizes' => $oldItem->attributes->sizes, // Keep available sizes
+            ],
+        ]);
+
+        // Save the updated cart to the database
+        $cart = Cart::session($userId)->getContent()->toArray();
+        \App\Models\Cart::updateOrCreate(
+            ['user_id' => $userId],
+            ['cart_data' => $cart]
+        );
+
+        return redirect('cart')->with('success', 'Size updated successfully!');
+    }
+
+
 
 
     public function clearCart()
@@ -156,7 +291,33 @@ class FrontController extends Controller
     public function increaseQuantity($id)
     {
         $userId = auth()->id() ?? session()->getId();
-        Cart::session($userId)->update($id, ['quantity' => 1]);
+//        $item = Cart::session($userId)->update($id, ['quantity' => 1]);
+        $item = Cart::session($userId)->get($id);
+        $product = Product::find($id);
+
+        // Check if product exists
+        if (!$product) {
+            return redirect()->route('cart')->with('error', 'Product not found.');
+        }
+
+        // Check if the item exists in the cart
+        if (!$item) {
+            return redirect()->route('cart')->with('error', 'Item not found in cart.');
+        }
+
+        // Check if increasing quantity exceeds stock
+        if ($item->quantity + 1 > $product->stock_quantity) {
+            return redirect()->route('cart')->with('error', 'Not enough stock available for '. $product->name .'.');
+        }
+
+        // Attempt to update quantity
+        $updated = Cart::session($userId)->update($id, [
+            'quantity' => ['relative' => true, 'value' => 1]
+        ]);
+
+        if (!$updated) {
+            return redirect()->route('cart')->with('error', 'Failed to update quantity.');
+        }
 
         // Save the cart to database
         $cart = Cart::session($userId)->getContent()->toArray();

@@ -78,6 +78,35 @@ class LoginController extends Controller
         }
     }
 
+//    public function vendorLogin(Request $request)
+//    {
+//        $this->validate($request, [
+//            'vendor_email' => 'required|email',
+//            'vendor_password' => 'required|string|min:8'
+//        ]);
+//
+//        $vendor = Vendor::where('email', $request->vendor_email)->first();
+//        $remember_me = (!empty($request->vendor_remember)) ? TRUE : FALSE;
+//
+//        if ($vendor) {
+//            try {
+//
+//                if (Hash::check($request->vendor_password, $vendor->password)) {
+//
+//                    auth()->guard('vendor')->login($vendor, $remember_me);
+//                    return redirect()->route('vendor.home');
+//
+//                } else {
+//                    return back()->with('passwordError', 'Oops! You have entered an invalid password for vendor. Please try again.');
+//                }
+//            } catch (DecryptException $e) {
+//                dd($e->getMessage());
+//            }
+//        } else {
+//            return back()->with('emailError', 'Oops! You have entered an invalid email for vendor. Please try again.');
+//        }
+//    }
+
     public function vendorLogin(Request $request)
     {
         $this->validate($request, [
@@ -85,27 +114,20 @@ class LoginController extends Controller
             'vendor_password' => 'required|string|min:8'
         ]);
 
-        $vendor = Vendor::where('email', $request->vendor_email)->first();
-        $remember_me = (!empty($request->vendor_remember)) ? TRUE : FALSE;
+        $credentials = [
+            'email' => $request->vendor_email,
+            'password' => $request->vendor_password
+        ];
 
-        if ($vendor) {
-            try {
+        $remember = $request->has('vendor_remember');
 
-                if (Hash::check($request->vendor_password, $vendor->password)) {
-
-                    auth()->guard('vendor')->login($vendor, $remember_me);
-                    return redirect()->route('vendor.home');
-
-                } else {
-                    return back()->with('passwordError', 'Oops! You have entered an invalid password for vendor. Please try again.');
-                }
-            } catch (DecryptException $e) {
-                dd($e->getMessage());
-            }
+        if (auth()->guard('vendor')->attempt($credentials, $remember)) {
+            return redirect()->route('vendor.home');
         } else {
-            return back()->with('emailError', 'Oops! You have entered an invalid email for vendor. Please try again.');
+            return back()->with('passwordError', 'Oops! You have entered an invalid password for vendor. Please try again.');
         }
     }
+
 
 
 }

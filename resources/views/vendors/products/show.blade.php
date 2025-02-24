@@ -31,7 +31,7 @@
 
     <div class="row my-4">
         <div class="col-md-12">
-            <label for=""><span class="show-text">Size:</span> </label><span> {{ $item->size??'N/A' }}</span><br>
+            <label for=""><span class="show-text">Sizes:</span> </label><span> {{ empty($item->sizes) ? 'N/A': implode(', ', explode(',', $item->sizes)) }}</span><br>
         </div>
     </div>
 
@@ -45,9 +45,7 @@
     <h5><strong>Specifications</strong></h5>
     <div class="row my-3">
         <div class="col-md-12">
-
-
-            @if($item->specification)
+            @if(!$item->specifications)
                 <div class="alert btn-danger" role="alert">
                     <i class="fa fa-info-circle mr-2 text-white"></i> No specification
                 </div>
