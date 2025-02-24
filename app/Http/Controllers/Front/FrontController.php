@@ -133,7 +133,7 @@ class FrontController extends Controller
         Cart::session($userId)->clear();
 
         // Remove from database
-        Cart::where('user_id', $userId)->delete();
+        \App\Models\Cart::where('user_id', $userId)->delete();
 
         return redirect()->route('cart')->with('success', 'Cart cleared successfully.');
     }

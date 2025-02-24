@@ -94,6 +94,7 @@
                                 <p class="mb-2 fw-bold">Nrs. {{ number_format($total, 2) }}</p>
                             </div>
                             <div class="mt-3">
+                                <p class="mb-2">Make Purchase with:</p>
                                 <a href="" class="btn btn-success w-100 shadow-0 mb-2">Make Purchase</a>
                                 <a href="{{ route('product.home') }}" class="btn btn-outline-secondary w-100">Back to shop</a>
                             </div>
