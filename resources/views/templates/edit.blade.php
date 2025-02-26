@@ -77,7 +77,7 @@
     <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.0/jquery.validate.min.js"></script>
     <script>
         let specifications = [];
-        let priceVariations = [];
+        let productSizes = [];
         jQuery(document).ready(function () {
             $('#button_submit').click(
                 function (e) {
@@ -90,6 +90,9 @@
                     let names = [...$('.specficationName')];
                     let values = [...$('.specficationValue')];
 
+                    let sizes = [...$('.sizes')];
+                    let quantities = [...$('.quantities')];
+
                     names.forEach(function (name, obj) {
                         let keyValue = {
                             name: name.value,
@@ -100,8 +103,19 @@
 
                     });
 
+                    sizes.forEach(function (name, obj) {
+                        let keyValue = {
+                            name: name.value,
+                            value: quantities[obj].value
+                        }
+
+                        productSizes.push(keyValue)
+
+                    });
+
                     form.append(`
                         <input name="specifications" type="hidden" value='${JSON.stringify(specifications)}'>
+                        <input name="product_sizes" type="hidden" value='${JSON.stringify(productSizes)}'>
                     `);
 
                     $('#form').submit();

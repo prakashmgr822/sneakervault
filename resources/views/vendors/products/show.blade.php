@@ -42,6 +42,40 @@
         </div>
     </div>
 
+    <h5><strong>Sizes</strong></h5>
+    <div class="row my-3">
+        <div class="col-md-12">
+            @if(!$item->specifications)
+                <div class="alert btn-danger" role="alert">
+                    <i class="fa fa-info-circle mr-2 text-white"></i> No size
+                </div>
+            @else
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col">SN</th>
+                        <th scope="col">Size</th>
+                        <th scope="col">Quantity</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($item->product_sizes as $index => $productSize)
+                        <tr>
+                            @if($productSize['name'] == null)
+
+                            @else
+                                <td>{{$index + 1}}</td>
+                                <td>{{$productSize['name'] == null ? 'N/A' : $productSize['name']}}</td>
+                                <td>{{$productSize['value'] == null ? 'N/A' : $productSize['value']}}</td>
+                            @endif
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+    </div>
+
     <h5><strong>Specifications</strong></h5>
     <div class="row my-3">
         <div class="col-md-12">

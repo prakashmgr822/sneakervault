@@ -44,6 +44,12 @@
                             <hr/>
 
                             @forelse ($cartItems as $item)
+                                @php
+                                    list($productId, $currentSize) = explode('-', $item->id);
+                                    $product = App\Models\Product::find($productId);
+                                    $sizes = $product ? $product->product_sizes : [];
+                                @endphp
+
                                 <div class="row gy-3 mb-4">
                                     <div class="col-lg-5">
                                         <div class="d-flex">
@@ -75,18 +81,22 @@
                                     </div>
 
                                     <div class="col-lg-3 text-lg-end">
-                                        <form action="{{ route('update.size', $item->id) }}" method="POST">
+                                        <form action="{{ route('update.size', $item->id) }}" method="POST"
+                                              class="update-size-form">
                                             @csrf
-                                            <select name="size" class="form-select form-select-sm d-inline w-auto">
-                                                @foreach(explode(',', $item->attributes->sizes) as $sizeOption)
-                                                    <option
-                                                        value="{{ trim($sizeOption) }}" {{ $item->attributes->size == trim($sizeOption) ? 'selected' : '' }}>
-                                                        {{ trim($sizeOption) }}
+                                            <select name="size" class="form-select form-select-sm update-size-dropdown">
+                                                @foreach($sizes as $sizeOption)
+                                                    <option value="{{ $sizeOption['name'] }}"
+                                                        {{ $currentSize == $sizeOption['name'] ? 'selected' : '' }}
+                                                        {{ $sizeOption['value'] == 0 ? 'disabled' : '' }}>
+                                                        {{ $sizeOption['name'] }}
+                                                        ({{ $sizeOption['value'] > 0 ? 'Available: ' . $sizeOption['value'] : 'Out of Stock' }}
+                                                        )
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
                                         </form>
+                                        <br>
                                         <a href="{{ route('remove.item', $item->id) }}"
                                            class="btn btn-danger">Remove</a>
                                     </div>
@@ -108,20 +118,27 @@
                 <div class="col-lg-3">
                     <div class="card mb-3 border shadow-0">
                         <div class="card-body">
-                            <form>
-                                <div class="form-group">
-                                    <label class="form-label">Have a coupon?</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control border" placeholder="Coupon code">
-                                        <button class="btn btn-outline-secondary">Apply</button>
-                                    </div>
+                            {{--                            <form>--}}
+                            {{--                                <div class="form-group">--}}
+                            {{--                                    <label class="form-label">Have a coupon?</label>--}}
+                            {{--                                    <div class="input-group">--}}
+                            {{--                                        <input type="text" class="form-control border" placeholder="Coupon code">--}}
+                            {{--                                        <button class="btn btn-outline-secondary">Apply</button>--}}
+                            {{--                                    </div>--}}
+                            {{--                                </div>--}}
+                            {{--                            </form>--}}
+                            <form action="{{ route('checkout') }}" method="POST">
+                                @csrf
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Delivery Address</label>
+                                    <textarea id="address" name="address" class="form-control" rows="3"
+                                              placeholder="Enter your delivery address" required></textarea>
                                 </div>
-                            </form>
                         </div>
                     </div>
 
                     <div class="card shadow-0 border mb-3">
-                        <div class="card-body">
+                        <form class="card-body">
                             <div class="d-flex justify-content-between">
                                 <p class="mb-2">Shipping Cost:</p>
                                 <p class="mb-2 fw-bold">Nrs. {{ $shipping->getValue() }}</p>
@@ -144,54 +161,23 @@
                                 <a href="{{ route('product.home') }}" class="btn btn-outline-secondary w-100">Back to
                                     shop</a>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
-                <!-- End Summary Section -->
             </div>
+            <!-- End Summary Section -->
+        </div>
         </div>
     </section>
 @endsection
 
 @section('scripts')
-    <script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
-
     <script>
-        const totalPrice = parseInt("{{ $total }}");
-        var config = {
-            // replace the publicKey with yours
-            "publicKey": "test_public_key_dc74e0fd57cb46cd93832aee0a390234",
-            "productIdentity": "1234567890",
-            "productName": "Dragon",
-            "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
-            "paymentPreference": [
-                "KHALTI",
-                "EBANKING",
-                "MOBILE_BANKING",
-                "CONNECT_IPS",
-                "SCT",
-            ],
-            "eventHandler": {
-                onSuccess(payload) {
-                    // hit merchant api for initiating verfication
-                    console.log(payload);
-                },
-                onError(error) {
-                    console.log(error);
-                },
-                onClose() {
-                    console.log('widget is closing');
-                }
-            }
-        };
-
-        var checkout = new KhaltiCheckout(config);
-        var btn = document.getElementById("payment-button");
-        btn.onclick = function () {
-            // minimum transaction amount must be 10, i.e 1000 in paisa.
-            // checkout.show({amount: 1000});
-            checkout.show({amount: totalPrice * 100});
-        }
+        document.querySelectorAll('.update-size-dropdown').forEach(function (selectElem) {
+            selectElem.addEventListener('change', function () {
+                this.form.submit();
+            });
+        });
     </script>
 @endsection
 

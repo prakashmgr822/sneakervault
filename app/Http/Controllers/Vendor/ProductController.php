@@ -50,6 +50,7 @@ class ProductController extends BaseController
     public function create()
     {
         $info = $this->crudInfo();
+        $info['method'] = "create";
         return view($this->createResource(), $info);
     }
 
@@ -63,6 +64,10 @@ class ProductController extends BaseController
     {
         if ($request->specifications) {
             $request['specifications'] = json_decode($request->specifications, true);
+        }
+
+        if ($request->product_sizes) {
+            $request['product_sizes'] = json_decode($request->product_sizes, true);
         }
 
         $data = $request->all();
@@ -99,6 +104,7 @@ class ProductController extends BaseController
     {
         $info = $this->crudInfo();
         $info['item'] = Product::findOrFail($id);
+        $info['method'] = "edit";
         return view($this->editResource(), $info);
     }
 
@@ -114,6 +120,11 @@ class ProductController extends BaseController
         if ($request->specifications) {
             $request['specifications'] = json_decode($request->specifications, true);
         }
+
+        if ($request->product_sizes) {
+            $request['product_sizes'] = json_decode($request->product_sizes, true);
+        }
+
         $data = $request->all();
         $product = Product::findOrFail($id);
         $product->update($data);

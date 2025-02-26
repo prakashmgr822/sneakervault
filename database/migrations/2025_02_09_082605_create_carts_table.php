@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('user_id');
             $table->json('cart_data'); // Store cart items as JSON
+            $table->string('address')->nullable();
             $table->timestamps();
         });
     }

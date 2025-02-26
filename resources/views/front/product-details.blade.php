@@ -48,17 +48,6 @@
                     </h4>
                     <hr style="border-top: 1px solid #ccc;">
 
-                    @if($product->sizes)
-                        <p class="mb-3">
-                            <strong style="color: #555;">Choose a size:</strong>
-                            <select id="sizes" class="form-control">
-                                @foreach(explode(',', $product->sizes) as $size)
-                                    <option value="{{ trim($size) }}">{{ trim($size) }}</option>
-                                @endforeach
-                            </select>
-                        </p>
-                    @endif
-
                     @if($product->description)
                         <p class="mb-1">
                             <strong style="color: #555;">Description:</strong> {{ $product->description }}
@@ -69,7 +58,6 @@
                         <p class="mb-1"><strong style="color: #555;">Specification:</strong></p>
                         <div class="row my-3">
                             <div class="col-md-12">
-
 
                                 @if(!$product->specifications)
                                     <div class="alert btn-danger" role="alert">
@@ -100,6 +88,22 @@
                     <form action="{{ route('addToCart', ['productId' => $product->id]) }}" method="POST">
                         @csrf
                         <input type="hidden" name="size" id="size">
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+
+                        <!-- Size Selection -->
+                        <div class="mb-3">
+                            <label for="size" class="form-label">Select Size:</label>
+                            <select id="size" name="size" class="form-select" required>
+                                @foreach($product->product_sizes as $index => $productSize)
+                                    <option
+                                        value="{{ $productSize['name'] }}" {{ $productSize['value'] == 0 ? 'disabled' : '' }}>
+                                        {{ $productSize['name'] }}
+                                        ({{ $productSize['value'] > 0 ? 'Available: ' . $productSize['value'] : 'Out of Stock' }}
+                                        )
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <button type="submit"
                                 class="btn btn-success w-100 d-flex align-items-center justify-content-center"
                                 style="min-height: 50px;">
@@ -113,9 +117,11 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Set the initial value
             $('#size').val($('#sizes').val());
 

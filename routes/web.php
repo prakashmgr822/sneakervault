@@ -45,7 +45,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/cart/remove/{id}', [FrontController::class, 'removeItem'])->name('remove.item');
     Route::get('/cart/increase/{id}', [FrontController::class, 'increaseQuantity'])->name('add.quantity');
     Route::get('/cart/decrease/{id}', [FrontController::class, 'decreaseQuantity'])->name('decrease.quantity');
-    Route::get('/payment', [FrontController::class, 'payment'])->name('payment');
+    Route::post('/cart/checkout', [FrontController::class, 'checkout'])->name('checkout');
+    Route::get('/cart/payment', [FrontController::class, 'payment'])->name('payment');
+
 
     Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
         Route::get('home', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.home');
