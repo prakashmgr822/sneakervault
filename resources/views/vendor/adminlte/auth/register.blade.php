@@ -53,6 +53,18 @@
             @enderror
         </div>
 
+
+{{--        Phone--}}
+        <div class="input-group mb-3">
+            <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-phone"></span>
+                </div>
+            </div>
+        </div>
+
+
         {{-- Password field --}}
         <div class="input-group mb-3">
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"

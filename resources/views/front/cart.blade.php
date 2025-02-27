@@ -13,7 +13,7 @@
 @endsection
 
 @section('content')
-    <section class="bg-light my-5">
+    <section class="bg-light">
         <div class="container">
             <div class="row">
                 <!-- Cart Section -->
@@ -116,6 +116,8 @@
 
                 <!-- Summary Section -->
                 <div class="col-lg-3">
+                    <form action="{{ route('checkout') }}" method="POST">
+                        @csrf
                     <div class="card mb-3 border shadow-0">
                         <div class="card-body">
                             {{--                            <form>--}}
@@ -127,18 +129,18 @@
                             {{--                                    </div>--}}
                             {{--                                </div>--}}
                             {{--                            </form>--}}
-                            <form action="{{ route('checkout') }}" method="POST">
-                                @csrf
+
+
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Delivery Address</label>
                                     <textarea id="address" name="address" class="form-control" rows="3"
-                                              placeholder="Enter your delivery address" required></textarea>
+                                              placeholder="Enter your delivery address"  required>{{ old('address', $cartDetails->address ?? '') }}</textarea>
                                 </div>
                         </div>
                     </div>
 
                     <div class="card shadow-0 border mb-3">
-                        <form class="card-body">
+                        <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <p class="mb-2">Shipping Cost:</p>
                                 <p class="mb-2 fw-bold">Nrs. {{ $shipping->getValue() }}</p>
@@ -155,15 +157,17 @@
                                 <p class="mb-2">Total price:</p>
                                 <p class="mb-2 fw-bold">Nrs. {{ number_format($total, 2) }}</p>
                             </div>
-                            <div class="mt-3">
+                            <div class="mt-3 ">
                                 <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2">Make Purchase
                                 </button>
                                 <a href="{{ route('product.home') }}" class="btn btn-outline-secondary w-100">Back to
                                     shop</a>
                             </div>
-                        </form>
+
                     </div>
-                </div>
+
+                    </div>
+                    </form>
             </div>
             <!-- End Summary Section -->
         </div>

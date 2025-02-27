@@ -102,7 +102,7 @@
     <script>
         const totalPrice = parseInt("{{ $total }}");
         var config = {
-            "publicKey": "test_public_key_dc74e0fd57cb46cd93832aee0a390234",
+            "publicKey": "4625bb10a6f5459885d3da153116a69d",
             "productIdentity": "1234567890",
             "productName": "Dragon",
             "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",

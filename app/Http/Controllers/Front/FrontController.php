@@ -108,8 +108,9 @@ class FrontController extends Controller
         $shipping = Cart::getCondition('Shipping Cost');
         $subTotal = Cart::session($userId)->getSubTotal();
         $total = Cart::session($userId)->getTotal();
+        $cartDetails = \App\Models\Cart::where('user_id', $userId)->first();
 
-        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total')); // Pass to view
+        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total', 'cartDetails')); // Pass to view
     }
 
     /**
