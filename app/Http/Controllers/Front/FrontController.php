@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -103,6 +105,14 @@ class FrontController extends Controller
         } catch (InvalidConditionException $e) {
             error_log("cart_error", $e->getMessage());
         }
+
+//        $order = new Order([
+//            'user_id' => auth()->id() ?? session()->getId(),
+//            'tax' => Cart::getCondition('VAT 12.5%'),
+//            'subTotal' => Cart::session($userId)->getSubTotal(),
+//            'total' => auth()->id() ?? session()->getId(),
+//            'shipping_cost' => Cart::getCondition('Shipping Cost'),
+//        ]);
 
         $tax = Cart::getCondition('VAT 12.5%');
         $shipping = Cart::getCondition('Shipping Cost');
@@ -254,6 +264,7 @@ class FrontController extends Controller
         $userId = auth()->id() ?? session()->getId();
         $cartItems = Cart::session($userId)->getContent();
 
+
         foreach ($cartItems as $item) {
             list($productId, $size) = explode('-', $item->id);
             $quantity = $item->quantity;
@@ -397,37 +408,72 @@ class FrontController extends Controller
     public function checkout(Request $request)
     {
         $request->validate([
-            'address' => 'required|string|max:255',
+            'shipping_address' => 'required|string|max:255',
         ]);
 
         $userId = auth()->check() ? auth()->id() : session()->getId();
         $cartData = Cart::session($userId)->getContent()->toArray();
+
+//        $tax = Cart::getCondition('VAT 12.5%');
+//        $shipping = Cart::getCondition('Shipping Cost');
+//        $subTotal = Cart::session($userId)->getSubTotal();
+//        $total = Cart::session($userId)->getTotal();
+//
+
 
         // Save or update the cart record with the delivery address.
         \App\Models\Cart::updateOrCreate(
             ['user_id' => $userId],
             [
                 'cart_data' => $cartData,
-                'address'   => $request->address,
             ]
         );
+        // Get cart conditions
+        $tax = Cart::getCondition('VAT 12.5%');
+        $shipping = Cart::getCondition('Shipping Cost');
+
+        // Extract values safely
+        $taxAmount = $tax ? $tax->getCalculatedValue(Cart::session($userId)->getSubTotal()) : 0;
+        $shippingAmount = $shipping ? $shipping->getCalculatedValue(Cart::session($userId)->getSubTotal()) : 0;
+
+
+        $subTotal = Cart::session($userId)->getSubTotal();
+        $total = Cart::session($userId)->getTotal();
+
+        // Create order record
+        $order = Order::updateOrCreate([
+            'user_id' => $userId,
+            'subtotal' => $subTotal,
+            'tax' => $taxAmount,
+            'shipping_cost' => $shippingAmount,
+            'total' => $total,
+            'shipping_address' => $request->shipping_address,
+            'status' => 'pending', // Change as needed
+        ]);
+        $order->save();
         return redirect()->route('payment')->with('success', 'Checkout successful. Please proceed to payment.');
     }
 
 
     public function payment() {
         $userId = auth()->id() ?? session()->getId();
+        $user = User::where('id', $userId)->first();
+        $cart = \App\Models\Cart::where('user_id', $userId)->latest()->first();
+// Initialize empty cart data
+        $cartData = [];
 
-        $cartRecord = \App\Models\Cart::where('user_id', $userId)->first();
-        $address = $cartRecord ? $cartRecord->address : null;
-
-        $info['tax'] = Cart::getCondition('VAT 12.5%');
-        $info['shipping'] = Cart::getCondition('Shipping Cost');
-        $info['subTotal'] = Cart::session($userId)->getSubTotal();
-        $info['total'] = Cart::session($userId)->getTotal();
-        $info['address'] = $address;
-
-        return view('front.payment', $info);
+        // Check if cart exists and has valid JSON data
+        if ($cart && !empty($cart->cart_data)) {
+            // Ensure cart_data is a string before decoding
+            if (is_string($cart->cart_data)) {
+                $cartData = json_decode($cart->cart_data, true);
+            } else {
+                // If already an array, use it directly
+                $cartData = $cart->cart_data;
+            }
+        }
+        $order = \App\Models\Order::where('user_id', $userId)->latest()->first();
+        return view('front.payment', compact('order', 'user', 'cartData'));
     }
 
 }

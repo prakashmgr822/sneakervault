@@ -8,7 +8,6 @@
 
     <!-- Aos animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
     <link rel="stylesheet" href="{{asset('css/style.css')}}">
 @endsection
 
@@ -133,8 +132,8 @@
 
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Delivery Address</label>
-                                    <textarea id="address" name="address" class="form-control" rows="3"
-                                              placeholder="Enter your delivery address"  required>{{ old('address', $cartDetails->address ?? '') }}</textarea>
+                                    <textarea id="address" name="shipping_address" class="form-control" rows="3"
+                                              placeholder="Enter your delivery address"  required>{{ old('shipping_address', $cartDetails->shipping_address ?? '') }}</textarea>
                                 </div>
                         </div>
                     </div>
@@ -158,30 +157,36 @@
                                 <p class="mb-2 fw-bold">Nrs. {{ number_format($total, 2) }}</p>
                             </div>
                             <div class="mt-3 ">
-                                <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2">Make Purchase
-                                </button>
-                                <a href="{{ route('product.home') }}" class="btn btn-outline-secondary w-100">Back to
-                                    shop</a>
-                            </div>
+    @if(!empty($cartItems ))
+        <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2">Proceed to Payment
+        </button>
+    @else
+    <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2" disabled>Make Purchase
+    </button>
+                                @endif
 
-                    </div>
+    <a href="{{ route('product.home') }}" class="btn btn-outline-secondary w-100">Back to
+        shop</a>
+</div>
 
-                    </div>
-                    </form>
-            </div>
-            <!-- End Summary Section -->
-        </div>
-        </div>
-    </section>
+</div>
+
+</div>
+</form>
+</div>
+<!-- End Summary Section -->
+</div>
+</div>
+</section>
 @endsection
 
 @section('scripts')
-    <script>
-        document.querySelectorAll('.update-size-dropdown').forEach(function (selectElem) {
-            selectElem.addEventListener('change', function () {
-                this.form.submit();
-            });
-        });
-    </script>
+<script>
+document.querySelectorAll('.update-size-dropdown').forEach(function (selectElem) {
+selectElem.addEventListener('change', function () {
+this.form.submit();
+});
+});
+</script>
 @endsection
 

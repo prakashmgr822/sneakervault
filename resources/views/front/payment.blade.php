@@ -6,92 +6,166 @@
           integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{asset('css/style.css')}}">
+
     <style>
-        .cart-checkout {
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-top: 30px;
-        }
-        .cart-checkout h3 {
-            margin-bottom: 20px;
-            border-bottom: 2px solid #f1f1f1;
-            padding-bottom: 10px;
-        }
-        .order-summary p {
-            margin-bottom: 8px;
-        }
-        .form-control:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 8px rgba(13,110,253,0.25);
-        }
-        .btn-checkout {
-            background-color: #28a745;
+        .btn-purple {
+            background-color: #6f42c1 !important; /* Bootstrap Purple */
+            color: white !important;
+            border-radius: 5px;
+            padding: 10px 20px;
             border: none;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-checkout:hover {
-            background-color: #218838;
+        .btn{
+            border-radius: 5px;
+
+        }
+
+        .btn-purple:hover {
+            background-color: #5939a3 !important; /* Darker Purple */
         }
     </style>
 @endsection
 
 @section('content')
-    <section class="py-5">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="cart-checkout">
-                        <h3>Order Summary &amp; Payment</h3>
+    <section class="bg-light">
+        <div class="container my-3 ">
+            <div class="row">
+                <!-- Cart Section -->
+                <div class="col-lg-9 mt-3">
+                    @if (session()->has('success'))
+                        <div class="alert alert-success mt-2">
+                            {{ session()->get('success') }}
+                            <button type="button" class="btn-close float-end" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                    @endif
 
-                        @if(session()->has('error'))
-                            <div class="alert alert-danger">{{ session('error') }}</div>
-                        @endif
-
-                        <div class="order-summary mb-4">
-                            @if($address)
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Delivery Address:</label>
-                                    <p class="border rounded p-2">{{ $address }}</p>
+                    @if (session()->has('error'))
+                        <div class="alert alert-danger mt-2">
+                            {{ session()->get('error') }}
+                            <button type="button" class="btn-close float-end" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                    @endif
+{{--shipping address--}}
+                        <div class="card border shadow-0  ">
+                            <div class="m-4">
+                                <div class="mb-3 d-flex justify-content-between align-items-center">
+                                    <span class="card-title h4">Shipping Address</span>
                                 </div>
-                            @else
-                                <div class="alert alert-warning">
-                                    No delivery address found. Please go back and provide your address.
-                                </div>
-                            @endif
+                                <hr/>
 
-                            <p>
-                                <span>Shipping Cost:</span>
-{{--                                <span class="fw-bold float-end">Nrs. {{ $shipping->getValue() ?? 0 }}</span>--}}
-                                <span class="fw-bold float-end">Nrs. 0</span>
-                            </p>
-                            <p>
-                                <span>Sub Total:</span>
-                                <span class="fw-bold float-end">Nrs. {{ number_format($subTotal, 2) }}</span>
-                            </p>
-                            <p>
-                                <span>Tax:</span>
-{{--                                <span class="fw-bold float-end">{{ $tax->getValue() ?? 0 }}</span>--}}
-                                <span class="fw-bold float-end">0</span>
-                            </p>
-                            <p class="border-top pt-2">
-                                <span>Total Price:</span>
-                                <span class="fw-bold float-end">Nrs. {{ number_format($total, 2) }}</span>
-                            </p>
+                            </div>
+
+                            <div class="cart-body m-4">
+                                <div class="mb-2">
+                                    <p class="mb-2">{{$user->name}} &nbsp;-&nbsp; <span>{{$user->phone}}</span></p>
+                                </div>
+                                <div class="mb-2">
+                                    <p class="mb-2">Location: {{$order->shipping_address}}</p>
+                                </div>
+                            </div>
+
+                        </div>
+{{--product summary--}}
+                        <div class="card border shadow-0 mt-3 ">
+                            <div class="m-4">
+                                <div class="mb-3 d-flex justify-content-between align-items-center">
+                                    <span class="card-title h4">Package</span>
+                                </div>
+                                <hr/>
+                            </div>
+
+                            <div class="cart-body m-4">
+                                @if(!empty($cartData))
+                                    <div class="row">
+                                        @foreach ($cartData as $item)
+                                            <div class="col-md-3 col-sm-6 mb-4">
+                                                <div class="card border-0 shadow-sm">
+                                                    <img src="{{ $item['attributes']['image'] }}" class="card-img-top" alt="{{ $item['name'] }}" style="height: 200px; object-fit: cover;">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title">{{ $item['name'] }}</h6>
+                                                    <p class="text-muted">Size: {{ $item['attributes']['size'] }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card-body text-center">
+                                                    <p class="text-danger font-weight-bold">Nrs ${{ $item['price'] }}</p>
+
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card-body text-center">
+                                                    <p>Qty: <strong>{{ $item['quantity'] }}</strong></p>
+
+                                                </div>
+                                            </div>
+                                            <hr>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p class="text-center">Your cart is empty.</p>
+                                @endif
+
                         </div>
 
-                        <form action="{{ route('payment') }}" method="POST">
-                        @csrf
-                        <!-- Payment Integration Button (e.g., Khalti) -->
-                            <button type="button" id="payment-button" class="btn btn-checkout btn-lg w-100 mb-2">
-                                Make Purchase
-                            </button>
-                            <a href="{{ route('product.home') }}" class="btn btn-outline-secondary btn-lg w-100 mt-3">Back to Shop</a>
-                        </form>
+                </div>
+                </div>
+                <!-- End Cart Section -->
+
+                <!-- Summary Section -->
+                <div class="col-lg-3 mt-3">
+                    <div class="card shadow-0 border mb-3">
+                        <div class="m-4">
+                            <div class="mb-3 d-flex justify-content-between align-items-center">
+                                <span class="card-title h4">Order Summary and Payment</span>
+                            </div>
+                            <hr/>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between ">
+                                <p class="mb-2">Shipping Cost:</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $order->shipping_cost }}</p>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <p class="mb-2">Sub Total:</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $order->subtotal }}</p>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <p class="mb-2">Tax:</p>
+                                <p class="mb-2 fw-bold">12%</p>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <p class="mb-2">Total price:</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $order->total }}</p>
+                            </div>
+                            <div class="mt-3 ">
+                                <form action="{{ route('payment') }}" method="POST">
+                                @csrf
+                                <!-- Payment Integration Button (e.g., Khalti) -->
+                                    <p class="mb-2 text-center">Payment Method:</p>
+                                    <button type="button" id="payment-button" class="btn btn-purple px-4 btn-lg w-100 mb-2" >
+                                        Pay with Khalti
+                                    </button>
+                                    <a href="" class="btn btn-secondary btn-lg w-100 m">Cash on Delivery</a>
+                                    <hr>
+
+                                    <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>
+                                </form>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
+                <!-- End Summary Section -->
             </div>
         </div>
     </section>
@@ -100,9 +174,9 @@
 @section('scripts')
     <script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
     <script>
-        const totalPrice = parseInt("{{ $total }}");
+        const totalPrice = parseInt("{{ $order->total }}");
         var config = {
-            "publicKey": "4625bb10a6f5459885d3da153116a69d",
+            "publicKey": "test_public_key_dc74a653b6de4a039232c708adcdd204",
             "productIdentity": "1234567890",
             "productName": "Dragon",
             "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
