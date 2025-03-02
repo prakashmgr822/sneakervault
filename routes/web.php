@@ -67,6 +67,7 @@ Route::group(['prefix' => 'vendor', 'middleware' => 'auth:vendor'], function () 
     Route::get('/change-password', [\App\Http\Controllers\Vendor\DashboardController::class, 'changePassword'])->name('vendor.change-password');
     Route::post('/change-password/save', [\App\Http\Controllers\Vendor\DashboardController::class, 'changePasswordSave'])->name('vendor.password.store');
     Route::resource('orders', \App\Http\Controllers\Vendor\OrderController::class);
+    Route::resource('notifications', \App\Http\Controllers\Vendor\NotificationController::class)->only(['index', 'show']);
 
 });
 

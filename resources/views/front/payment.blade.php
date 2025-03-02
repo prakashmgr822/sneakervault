@@ -86,7 +86,7 @@
                                         @foreach ($cartData as $item)
                                             <div class="col-md-3 col-sm-6 mb-4">
                                                 <div class="card border-0 shadow-sm">
-                                                    <img src="{{ $item['attributes']['image'] }}" class="card-img-top" alt="{{ $item['name'] }}" style="height: 200px; object-fit: cover;">
+                                                    <img src="{{ $item['attributes']['image'] ?: asset("img/no-img.png") }}" class="card-img-top" alt="{{ $item['name'] }}" style="height: 200px; object-fit: cover;">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">

@@ -134,7 +134,8 @@
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Delivery Address</label>
                                     <textarea id="address" name="shipping_address" class="form-control" rows="3"
-                                              placeholder="Enter your delivery address"  required>{{ old('shipping_address', $cartDetails->shipping_address ?? '') }}</textarea>
+                                              placeholder="Enter your delivery address"  required>{{ old('address', $cartDetails->address ?? '') }}</textarea>
+                                    <input type="hidden" name="cart_id" value="{{$cartDetails->id}}">
                                 </div>
                         </div>
                     </div>

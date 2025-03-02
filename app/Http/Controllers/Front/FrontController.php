@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Notifications\Vendor\NewOrderNotification;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -410,9 +411,11 @@ class FrontController extends Controller
         $request->validate([
             'shipping_address' => 'required|string|max:255',
         ]);
-
         $userId = auth()->check() ? auth()->id() : session()->getId();
         $cartData = Cart::session($userId)->getContent()->toArray();
+        $cart = ModelCart::findOrFail($request->cart_id);
+        $cart->address = $request->shipping_address;
+        $cart->update();
 
 //        $tax = Cart::getCondition('VAT 12.5%');
 //        $shipping = Cart::getCondition('Shipping Cost');
@@ -462,6 +465,10 @@ class FrontController extends Controller
                 'size' => $shoeSize, // Shoe size extracted from the composite ID
                 'quantity' => $item['quantity'], // Quantity from the cart item
             ]);
+        }
+        foreach ($order->products ?? [] as $product) {
+            $vendor = $product->vendor;
+            $vendor->notify(new NewOrderNotification($order));
         }
         return redirect()->route('payment')->with('success', 'Checkout successful. Please proceed to payment.');
     }

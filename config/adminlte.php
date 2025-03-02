@@ -372,6 +372,23 @@ return [
             'icon' => 'nav-icon fas fa-lock ',
             'guard' => 'vendor'
         ],
+        [
+            'type' => 'navbar-notification',
+            'id' => 'my-notification',
+            'icon' => 'fas fa-bell',
+            'icon_color' => 'dark',
+            'label' => 0,
+            'label_color' => 'danger',
+            'url' => false,
+            'topnav_right' => true,
+            'dropdown_mode' => true,
+            'dropdown_flabel' => false,
+            'update_cfg' => [
+                'url' => 'vendor/notifications',
+                'period' => 30,
+            ],
+            'guard' => 'vendor'
+        ],
     ],
 
     /*
