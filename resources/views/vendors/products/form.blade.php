@@ -14,20 +14,6 @@
 
 <div class="form-group row">
     <div class="col-md-6">
-        <label for="">Price <span class="text-danger">*</span></label>
-        <input type="number" class="form-control" name="price" value="{{ old('price',$item->price) }}"
-               placeholder="Enter price" required>
-    </div>
-    <div class="col-md-6">
-        <label for=""> Quantity <span class="text-danger">*</span></label>
-        <input type="number" class="form-control" name="stock_quantity"
-               value="{{ old('stock_quantity',$item->stock_quantity) }}"
-               placeholder="Enter quantity" required>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-md-6">
         <label for=""> Image</label>
         <input type="file" name="image" class="form-control" value="{{ old('dob',$item->image) }}">
         @if($item->getImage())
@@ -36,7 +22,13 @@
             </div>
         @endif
     </div>
+    <div class="col-md-6">
+        <label for="">Price <span class="text-danger">*</span></label>
+        <input type="number" class="form-control" name="price" value="{{ old('price',$item->price) }}"
+               placeholder="Enter price" required>
+    </div>
 </div>
+
 
 <div class="card card-custom  my-8">
     <div class="card-header">

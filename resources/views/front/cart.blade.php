@@ -14,11 +14,11 @@
 @section('content')
     <section class="bg-light">
         <div class="container">
-            <div class="row">
+            <div class="row my-3">
                 <!-- Cart Section -->
-                <div class="col-lg-9">
+                <div class="col-lg-9 my-3">
                     @if (session()->has('success'))
-                        <div class="alert alert-success mt-2">
+                        <div class="alert alert-success mt-3">
                             {{ session()->get('success') }}
                             <button type="button" class="btn-close float-end" data-bs-dismiss="alert"
                                     aria-label="Close"></button>
@@ -26,7 +26,7 @@
                     @endif
 
                     @if (session()->has('error'))
-                        <div class="alert alert-danger mt-2">
+                        <div class="alert alert-danger mt-3">
                             {{ session()->get('error') }}
                             <button type="button" class="btn-close float-end" data-bs-dismiss="alert"
                                     aria-label="Close"></button>
@@ -34,7 +34,7 @@
                     @endif
 
 
-                    <div class="card border shadow-0 mt-3">
+                    <div class="card border shadow-0">
                         <div class="m-4">
                             <div class="mb-3 d-flex justify-content-between align-items-center">
                                 <span class="card-title h4">Your Shopping Cart</span>
@@ -49,7 +49,7 @@
                                     $sizes = $product ? $product->product_sizes : [];
                                 @endphp
 
-                                <div class="row gy-3 mb-4">
+                                <div class="row gy-3">
                                     <div class="col-lg-5">
                                         <div class="d-flex">
                                             <img src="{{ $item->attributes->image ?: asset('img/no-img.png') }}"
@@ -100,6 +100,7 @@
                                            class="btn btn-danger">Remove</a>
                                     </div>
                                 </div>
+                                <hr>
                             @empty
                                 <span class="text-danger">There are no products in the cart</span>
                             @endforelse
@@ -114,7 +115,7 @@
                 <!-- End Cart Section -->
 
                 <!-- Summary Section -->
-                <div class="col-lg-3">
+                <div class="col-lg-3 my-3">
                     <form action="{{ route('checkout') }}" method="POST">
                         @csrf
                     <div class="card mb-3 border shadow-0">

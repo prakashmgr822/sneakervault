@@ -27,6 +27,11 @@ class Vendor extends Authenticatable implements HasMedia
         return $this->hasMany(Product::class);
     }
 
+    public function orders()
+    {
+        return $this->hasManyThrough(Order::class, Product::class);
+    }
+
     function getImageUrlAttribute(){
         return $this->getFirstMediaUrl();
     }

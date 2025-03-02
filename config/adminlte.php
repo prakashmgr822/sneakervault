@@ -360,6 +360,13 @@ return [
         ],
 
         [
+            'text' => 'Order',
+            'route' => 'orders.index',
+            'icon'  => 'nav-icon fas fa-shopping-cart',
+            'guard' => 'vendor',
+        ],
+
+        [
             'text' => 'Change Password',
             'route' => 'vendor.change-password',
             'icon' => 'nav-icon fas fa-lock ',

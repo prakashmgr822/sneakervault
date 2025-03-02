@@ -32,7 +32,7 @@
 
 @section('content')
     <section class="bg-light">
-        <div class="container my-3 ">
+        <div class="container mb-3">
             <div class="row">
                 <!-- Cart Section -->
                 <div class="col-lg-9 mt-3">

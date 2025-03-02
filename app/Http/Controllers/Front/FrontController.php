@@ -451,6 +451,18 @@ class FrontController extends Controller
             'status' => 'pending', // Change as needed
         ]);
         $order->save();
+
+        // Loop through cart items and attach products to the order
+        foreach ($cartData as $item) {
+            // Extract product_id and shoe_size from the composite ID (e.g., "1-39")
+            list($productId, $shoeSize) = explode('-', $item['id']);
+
+            // Attach product to the order with shoe_size and quantity
+            $order->products()->attach($productId, [
+                'size' => $shoeSize, // Shoe size extracted from the composite ID
+                'quantity' => $item['quantity'], // Quantity from the cart item
+            ]);
+        }
         return redirect()->route('payment')->with('success', 'Checkout successful. Please proceed to payment.');
     }
 
@@ -460,7 +472,6 @@ class FrontController extends Controller
         $user = User::where('id', $userId)->first();
         $cart = \App\Models\Cart::where('user_id', $userId)->latest()->first();
 // Initialize empty cart data
-        $cartData = [];
 
         // Check if cart exists and has valid JSON data
         if ($cart && !empty($cart->cart_data)) {
@@ -472,6 +483,9 @@ class FrontController extends Controller
                 $cartData = $cart->cart_data;
             }
         }
+
+
+
         $order = \App\Models\Order::where('user_id', $userId)->latest()->first();
         return view('front.payment', compact('order', 'user', 'cartData'));
     }

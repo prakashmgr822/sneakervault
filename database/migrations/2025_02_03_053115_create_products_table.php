@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('brand')->nullable();
             $table->float('price');
-            $table->float('stock_quantity')->nullable();
             $table->json('specifications')->nullable();
             $table->json('product_sizes')->nullable();
             $table->string('sizes')->nullable();

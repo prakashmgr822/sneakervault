@@ -16,4 +16,12 @@ class Order extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class)
+            ->withPivot(['size', 'quantity']) // Include pivot attributes
+            ->withTimestamps();
+    }
+
 }
