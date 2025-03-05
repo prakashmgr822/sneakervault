@@ -47,6 +47,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/cart/decrease/{id}', [FrontController::class, 'decreaseQuantity'])->name('decrease.quantity');
     Route::post('/cart/checkout', [FrontController::class, 'checkout'])->name('checkout');
     Route::get('/cart/payment', [FrontController::class, 'payment'])->name('payment');
+    Route::post('/process-khalti-payment', [FrontController::class, 'processKhaltiPayment'])->name('process.khalti');
+    Route::post('/process-cod-payment', [FrontController::class, 'processCodPayment'])->name('process.cod');
+    Route::get('/order-success', [FrontController::class, 'orderSuccess'])->name('order.success');
 
 
     Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {

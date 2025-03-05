@@ -134,8 +134,8 @@
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Delivery Address</label>
                                     <textarea id="address" name="shipping_address" class="form-control" rows="3"
-                                              placeholder="Enter your delivery address"  required>{{ old('address', $cartDetails->address ?? '') }}</textarea>
-                                    <input type="hidden" name="cart_id" value="{{$cartDetails->id}}">
+                                              placeholder="Enter your delivery address"  required>{{ old('address', $cartDetails ? $cartDetails->address : '') }}</textarea>
+                                    <input type="hidden" name="cart_id" value="{{$cartDetails ? $cartDetails->id : ""}}">
                                 </div>
                         </div>
                     </div>
@@ -160,7 +160,7 @@
                             </div>
                             <div class="mt-3 ">
     @if(!empty($cartItems ))
-        <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2">Proceed to Payment
+        <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2" @if(!$cartDetails) disabled @endif>Proceed to Payment
         </button>
     @else
     <button id="payment-button" class="btn btn-success w-100 shadow-0 mb-2" disabled>Make Purchase

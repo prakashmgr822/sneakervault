@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-
+use App\Jobs\SendOrderConfirmationEmail;
+use App\Mail\OrderConfirmationEmail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Notifications\Vendor\NewOrderNotification;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use App\Models\Cart as ModelCart;
@@ -17,31 +19,26 @@ use function PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\datedifD;
 
 class FrontController extends Controller
 {
-
-    public function home() {
-
+    public function home()
+    {
         $products = Product::inRandomOrder()->limit(3)->get();
         return view('front/welcome', compact('products'));
     }
 
-    public function product() {
+    public function product()
+    {
         $products = Product::paginate(30);
         return view('front/product', compact('products'));
     }
 
-    public function about(){
+    public function about()
+    {
         return view('front/about');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-
-    public function productDetails($id) {
-        $product = Product::findorfail($id);
+    public function productDetails($id)
+    {
+        $product = Product::findOrFail($id);
         return view('front/product-details', compact('product'));
     }
 
@@ -54,16 +51,14 @@ class FrontController extends Controller
             ->orWhere('brand', 'LIKE', "%{$query}%")
             ->get();
 
-        // Attach a custom property (e.g., image_url) to each product using your getImage() method.
-        $products->each(function($product) {
-            // You can specify a collection name if needed; otherwise, leave it as default.
+        // Attach a custom property (e.g., image_url) to each product.
+        $products->each(function ($product) {
             $product->image_url = $product->getImage();
         });
 
         return response()->json($products);
     }
 
-    // Function to get the total cart count
     public function getCartCount()
     {
         $userId = auth()->id();
@@ -76,8 +71,8 @@ class FrontController extends Controller
 
     public function cart()
     {
-        $userId = auth()->id() ?? session()->getId(); // Use user ID if logged in, else session ID
-        $savedCart = \App\Models\Cart::where('user_id', $userId)->first();
+        $userId = auth()->id() ?? session()->getId();
+        $savedCart = ModelCart::where('user_id', $userId)->first();
 
         if ($savedCart) {
             Cart::session($userId)->clear();
@@ -87,50 +82,34 @@ class FrontController extends Controller
             }
         }
 
-        $cartItems = Cart::session($userId)->getContent(); // Fetch cart items
+        $cartItems = Cart::session($userId)->getContent();
         try {
-            $condition1 = new \Darryldecode\Cart\CartCondition(array(
-                'name' => 'VAT 12.5%',
-                'type' => 'tax',
+            $condition1 = new \Darryldecode\Cart\CartCondition([
+                'name'   => 'VAT 12.5%',
+                'type'   => 'tax',
                 'target' => 'total',
-                'value' => '12.5%'
-            ));
-            $condition2 = new \Darryldecode\Cart\CartCondition(array(
-                'name' => 'Shipping Cost',
-                'type' => 'shipping',
+                'value'  => '12.5%'
+            ]);
+            $condition2 = new \Darryldecode\Cart\CartCondition([
+                'name'   => 'Shipping Cost',
+                'type'   => 'shipping',
                 'target' => 'subtotal',
-                'value' => '15'
-            ));
+                'value'  => '15'
+            ]);
             Cart::condition([$condition1]);
             Cart::condition([$condition2]);
         } catch (InvalidConditionException $e) {
             error_log("cart_error", $e->getMessage());
         }
 
-//        $order = new Order([
-//            'user_id' => auth()->id() ?? session()->getId(),
-//            'tax' => Cart::getCondition('VAT 12.5%'),
-//            'subTotal' => Cart::session($userId)->getSubTotal(),
-//            'total' => auth()->id() ?? session()->getId(),
-//            'shipping_cost' => Cart::getCondition('Shipping Cost'),
-//        ]);
-
         $tax = Cart::getCondition('VAT 12.5%');
         $shipping = Cart::getCondition('Shipping Cost');
         $subTotal = Cart::session($userId)->getSubTotal();
         $total = Cart::session($userId)->getTotal();
-        $cartDetails = \App\Models\Cart::where('user_id', $userId)->first();
+        $cartDetails = ModelCart::where('user_id', $userId)->first();
 
-        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total', 'cartDetails')); // Pass to view
+        return view('front/cart', compact('cartItems', 'tax', 'shipping', 'subTotal', 'total', 'cartDetails'));
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param Request $request
-     * @param $productId
-     * @return \Illuminate\Http\Response
-     */
 
     public function addToCart(Request $request, $productId)
     {
@@ -138,7 +117,7 @@ class FrontController extends Controller
         $userId = auth()->check() ? auth()->id() : session()->getId();
         $size = trim($request->get('size'));
 
-        $availableSizes = $product->product_sizes; // e.g. [ ['name'=>'S', 'value'=>10], ... ]
+        $availableSizes = $product->product_sizes;
         $sizeEntry = collect($availableSizes)->firstWhere('name', $size);
         if (!$sizeEntry) {
             return redirect()->back()->with('error', 'Invalid size selection.');
@@ -182,7 +161,7 @@ class FrontController extends Controller
 
         // Save the cart to the database
         $cart = Cart::session($userId)->getContent()->toArray();
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
             ['cart_data' => $cart]
         );
@@ -203,7 +182,6 @@ class FrontController extends Controller
 
         list($productId, $oldSize) = explode('-', $oldItem->id);
         if ($newSize === $oldSize) {
-            // No change in size; nothing to update.
             return redirect('cart');
         }
 
@@ -237,7 +215,7 @@ class FrontController extends Controller
         $product->product_sizes = $availableSizes;
         $product->save();
 
-        // Remove the old cart item and add a new one with the updated size in the composite ID
+        // Remove the old cart item and add a new one with the updated size
         Cart::session($userId)->remove($oldItem->id);
         $newCartId = $productId . '-' . $newSize;
         Cart::session($userId)->add([
@@ -252,7 +230,7 @@ class FrontController extends Controller
         ]);
 
         $cart = Cart::session($userId)->getContent()->toArray();
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
             ['cart_data' => $cart]
         );
@@ -264,7 +242,6 @@ class FrontController extends Controller
     {
         $userId = auth()->id() ?? session()->getId();
         $cartItems = Cart::session($userId)->getContent();
-
 
         foreach ($cartItems as $item) {
             list($productId, $size) = explode('-', $item->id);
@@ -284,7 +261,7 @@ class FrontController extends Controller
         }
 
         Cart::session($userId)->clear();
-        \App\Models\Cart::where('user_id', $userId)->delete();
+        ModelCart::where('user_id', $userId)->delete();
 
         return redirect()->route('cart')->with('success', 'Cart cleared successfully.');
     }
@@ -297,13 +274,11 @@ class FrontController extends Controller
             return redirect()->route('cart')->with('error', 'Item not found in cart.');
         }
 
-        // Extract product ID and size from the composite cart ID (formatted as "productId-size")
         list($productId, $size) = explode('-', $id);
         $quantity = $item->quantity;
 
         $product = Product::find($productId);
         if ($product) {
-            // Retrieve the product_sizes array and return the reserved quantity back to stock
             $productSizes = $product->product_sizes;
             foreach ($productSizes as &$entry) {
                 if ($entry['name'] == $size) {
@@ -315,12 +290,10 @@ class FrontController extends Controller
             $product->save();
         }
 
-        // Remove the item from the cart
         Cart::session($userId)->remove($id);
 
-        // Update the saved cart data
         $cart = Cart::session($userId)->getContent()->toArray();
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
             ['cart_data' => $cart]
         );
@@ -345,7 +318,6 @@ class FrontController extends Controller
         if (!$sizeEntry || $sizeEntry['value'] <= 0) {
             return redirect()->route('cart')->with('error', 'Not enough stock available for ' . $product->name . ' in size ' . $size . '.');
         }
-        // Decrement available stock by 1
         foreach ($availableSizes as &$entry) {
             if ($entry['name'] == $size) {
                 $entry['value']--;
@@ -355,13 +327,12 @@ class FrontController extends Controller
         $product->product_sizes = $availableSizes;
         $product->save();
 
-        // Increase cart quantity by 1
         Cart::session($userId)->update($id, [
             'quantity' => ['relative' => true, 'value' => 1]
         ]);
 
         $cart = Cart::session($userId)->getContent()->toArray();
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
             ['cart_data' => $cart]
         );
@@ -381,7 +352,6 @@ class FrontController extends Controller
             return redirect()->route('cart')->with('error', 'Product not found.');
         }
         $availableSizes = $product->product_sizes;
-        // Return one unit to stock because the user is reducing the cart quantity
         foreach ($availableSizes as &$entry) {
             if ($entry['name'] == $size) {
                 $entry['value']++;
@@ -398,14 +368,17 @@ class FrontController extends Controller
         }
 
         $cart = Cart::session($userId)->getContent()->toArray();
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
             ['cart_data' => $cart]
         );
         return redirect()->route('cart');
     }
 
-
+    /**
+     * Updated checkout method.
+     * Now, we only save the shipping address with the cart without creating an order.
+     */
     public function checkout(Request $request)
     {
         $request->validate([
@@ -417,84 +390,161 @@ class FrontController extends Controller
         $cart->address = $request->shipping_address;
         $cart->update();
 
-//        $tax = Cart::getCondition('VAT 12.5%');
-//        $shipping = Cart::getCondition('Shipping Cost');
-//        $subTotal = Cart::session($userId)->getSubTotal();
-//        $total = Cart::session($userId)->getTotal();
-//
-
-
-        // Save or update the cart record with the delivery address.
-        \App\Models\Cart::updateOrCreate(
+        ModelCart::updateOrCreate(
             ['user_id' => $userId],
-            [
-                'cart_data' => $cartData,
-            ]
+            ['cart_data' => $cartData, 'address' => $request->shipping_address]
         );
-        // Get cart conditions
-        $tax = Cart::getCondition('VAT 12.5%');
-        $shipping = Cart::getCondition('Shipping Cost');
 
-        // Extract values safely
-        $taxAmount = $tax ? $tax->getCalculatedValue(Cart::session($userId)->getSubTotal()) : 0;
-        $shippingAmount = $shipping ? $shipping->getCalculatedValue(Cart::session($userId)->getSubTotal()) : 0;
-
-
-        $subTotal = Cart::session($userId)->getSubTotal();
-        $total = Cart::session($userId)->getTotal();
-
-        // Create order record
-        $order = Order::updateOrCreate([
-            'user_id' => $userId,
-            'subtotal' => $subTotal,
-            'tax' => $taxAmount,
-            'shipping_cost' => $shippingAmount,
-            'total' => $total,
-            'shipping_address' => $request->shipping_address,
-            'status' => 'pending', // Change as needed
-        ]);
-        $order->save();
-
-        // Loop through cart items and attach products to the order
-        foreach ($cartData as $item) {
-            // Extract product_id and shoe_size from the composite ID (e.g., "1-39")
-            list($productId, $shoeSize) = explode('-', $item['id']);
-
-            // Attach product to the order with shoe_size and quantity
-            $order->products()->attach($productId, [
-                'size' => $shoeSize, // Shoe size extracted from the composite ID
-                'quantity' => $item['quantity'], // Quantity from the cart item
-            ]);
-        }
-        foreach ($order->products ?? [] as $product) {
-            $vendor = $product->vendor;
-            $vendor->notify(new NewOrderNotification($order));
-        }
         return redirect()->route('payment')->with('success', 'Checkout successful. Please proceed to payment.');
     }
 
-
-    public function payment() {
+    /**
+     * Updated payment method.
+     * Instead of fetching an order, we calculate an order summary from the cart and pass it to the view.
+     */
+    public function payment()
+    {
         $userId = auth()->id() ?? session()->getId();
         $user = User::where('id', $userId)->first();
-        $cart = \App\Models\Cart::where('user_id', $userId)->latest()->first();
-// Initialize empty cart data
-
-        // Check if cart exists and has valid JSON data
+        $cart = ModelCart::where('user_id', $userId)->latest()->first();
         if ($cart && !empty($cart->cart_data)) {
-            // Ensure cart_data is a string before decoding
-            if (is_string($cart->cart_data)) {
-                $cartData = json_decode($cart->cart_data, true);
-            } else {
-                // If already an array, use it directly
-                $cartData = $cart->cart_data;
+            $cartData = is_string($cart->cart_data) ? json_decode($cart->cart_data, true) : $cart->cart_data;
+        } else {
+            $cartData = [];
+        }
+        $taxCondition = Cart::getCondition('VAT 12.5%');
+        $shippingCondition = Cart::getCondition('Shipping Cost');
+        $subTotal = Cart::session($userId)->getSubTotal();
+        $taxAmount = $taxCondition ? $taxCondition->getCalculatedValue($subTotal) : 0;
+        $shippingCost = $shippingCondition ? $shippingCondition->getCalculatedValue($subTotal) : 0;
+        $total = Cart::session($userId)->getTotal();
+
+        // Create a temporary order summary object for the view.
+        $orderSummary = (object)[
+            'shipping_address' => $cart ? $cart->address : '',
+            'shipping_cost'    => $shippingCost,
+            'subtotal'         => $subTotal,
+            'tax'              => $taxCondition ? $taxCondition->getValue() : '',
+            'total'            => $total
+        ];
+
+        return view('front.payment', compact('user', 'cartData', 'orderSummary'));
+    }
+
+    /**
+     * Updated processKhaltiPayment: the order is created (if not already) only when payment is confirmed.
+     */
+    public function processKhaltiPayment(Request $request)
+    {
+        $userId = auth()->id();
+        $user = User::findOrFail($userId);
+        $cartData = Cart::session($userId)->getContent()->toArray();
+        $taxCondition = Cart::getCondition('VAT 12.5%');
+        $shippingCondition = Cart::getCondition('Shipping Cost');
+        $subTotal = Cart::session($userId)->getSubTotal();
+        $taxAmount = $taxCondition ? $taxCondition->getCalculatedValue($subTotal) : 0;
+        $shippingAmount = $shippingCondition ? $shippingCondition->getCalculatedValue($subTotal) : 0;
+        $total = Cart::session($userId)->getTotal();
+
+        // Create order only at payment confirmation if it doesn't already exist.
+        $order = Order::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+        if (!$order) {
+            $cartRecord = ModelCart::where('user_id', $userId)->latest()->first();
+            $shippingAddress = $cartRecord ? $cartRecord->address : '';
+            $order = Order::create([
+                'user_id'          => $userId,
+                'subtotal'         => $subTotal,
+                'tax'              => $taxAmount,
+                'shipping_cost'    => $shippingAmount,
+                'total'            => $total,
+                'shipping_address' => $shippingAddress,
+                'status'           => 'pending',
+            ]);
+            foreach ($cartData as $item) {
+                list($productId, $shoeSize) = explode('-', $item['id']);
+                $order->products()->attach($productId, [
+                    'size'     => $shoeSize,
+                    'quantity' => $item['quantity'],
+                ]);
+            }
+            foreach ($order->products ?? [] as $product) {
+                $vendor = $product->vendor;
+                $vendor->notify(new NewOrderNotification($order));
             }
         }
 
+        // Process the Khalti payment and update order status.
+        $order->status = 'paid';
+        $order->save();
 
+        dispatch(new SendOrderConfirmationEmail($order, $user->email));
 
-        $order = \App\Models\Order::where('user_id', $userId)->latest()->first();
-        return view('front.payment', compact('order', 'user', 'cartData'));
+        Cart::session($userId)->clear();
+        ModelCart::where('user_id', $userId)->delete();
+
+        return redirect()->route('order.success')->with('success', 'Payment successful!');
     }
 
+    /**
+     * Updated processCodPayment: the order is created only when the user confirms Cash on Delivery.
+     */
+    public function processCodPayment(Request $request)
+    {
+        $userId = auth()->id();
+        $user = User::findOrFail($userId);
+        $cartData = Cart::session($userId)->getContent()->toArray();
+        $taxCondition = Cart::getCondition('VAT 12.5%');
+        $shippingCondition = Cart::getCondition('Shipping Cost');
+        $subTotal = Cart::session($userId)->getSubTotal();
+        $taxAmount = $taxCondition ? $taxCondition->getCalculatedValue($subTotal) : 0;
+        $shippingAmount = $shippingCondition ? $shippingCondition->getCalculatedValue($subTotal) : 0;
+        $total = Cart::session($userId)->getTotal();
+
+        $order = Order::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+        if (!$order) {
+            $cartRecord = ModelCart::where('user_id', $userId)->latest()->first();
+            $shippingAddress = $cartRecord ? $cartRecord->address : '';
+            $order = Order::create([
+                'user_id'          => $userId,
+                'subtotal'         => $subTotal,
+                'tax'              => $taxAmount,
+                'shipping_cost'    => $shippingAmount,
+                'total'            => $total,
+                'shipping_address' => $shippingAddress,
+                'status'           => 'pending',
+            ]);
+            foreach ($cartData as $item) {
+                list($productId, $shoeSize) = explode('-', $item['id']);
+                $order->products()->attach($productId, [
+                    'size'     => $shoeSize,
+                    'quantity' => $item['quantity'],
+                ]);
+            }
+            foreach ($order->products ?? [] as $product) {
+                $vendor = $product->vendor;
+                $vendor->notify(new NewOrderNotification($order));
+            }
+        }
+
+        $order->status = 'cash_on_delivery';
+        $order->save();
+
+        dispatch(new SendOrderConfirmationEmail($order, $user->email));
+
+        Cart::session($userId)->clear();
+        ModelCart::where('user_id', $userId)->delete();
+
+        return redirect()->route('order.success')->with('success', 'Order placed successfully! Cash on Delivery.');
+    }
+
+    public function orderSuccess()
+    {
+        return view("front.order-success");
+    }
 }

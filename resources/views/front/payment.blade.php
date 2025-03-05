@@ -66,7 +66,7 @@
                                     <p class="mb-2">{{$user->name}} &nbsp;-&nbsp; <span>{{$user->phone}}</span></p>
                                 </div>
                                 <div class="mb-2">
-                                    <p class="mb-2">Location: {{$order->shipping_address}}</p>
+                                    <p class="mb-2">Location: {{$orderSummary->shipping_address ?: ""}}</p>
                                 </div>
                             </div>
 
@@ -132,11 +132,11 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between ">
                                 <p class="mb-2">Shipping Cost:</p>
-                                <p class="mb-2 fw-bold">Nrs. {{ $order->shipping_cost }}</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $orderSummary->shipping_cost }}</p>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <p class="mb-2">Sub Total:</p>
-                                <p class="mb-2 fw-bold">Nrs. {{ $order->subtotal }}</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $orderSummary->subtotal }}</p>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <p class="mb-2">Tax:</p>
@@ -144,21 +144,35 @@
                             </div>
                             <div class="d-flex justify-content-between">
                                 <p class="mb-2">Total price:</p>
-                                <p class="mb-2 fw-bold">Nrs. {{ $order->total }}</p>
+                                <p class="mb-2 fw-bold">Nrs. {{ $orderSummary->total }}</p>
                             </div>
                             <div class="mt-3 ">
-                                <form action="{{ route('payment') }}" method="POST">
-                                @csrf
-                                <!-- Payment Integration Button (e.g., Khalti) -->
-                                    <p class="mb-2 text-center">Payment Method:</p>
-                                    <button type="button" id="payment-button" class="btn btn-purple px-4 btn-lg w-100 mb-2" >
+{{--                                <form action="{{ route('payment') }}" method="POST">--}}
+{{--                                @csrf--}}
+{{--                                <!-- Payment Integration Button (e.g., Khalti) -->--}}
+{{--                                    <p class="mb-2 text-center">Payment Method:</p>--}}
+{{--                                    <button type="button" id="payment-button" class="btn btn-purple px-4 btn-lg w-100 mb-2" >--}}
+{{--                                        Pay with Khalti--}}
+{{--                                    </button>--}}
+{{--                                    <a href="" class="btn btn-secondary btn-lg w-100 m">Cash on Delivery</a>--}}
+{{--                                    <hr>--}}
+
+{{--                                    <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>--}}
+{{--                                </form>--}}
+                                <form id="khalti-form" action="{{ route('process.khalti') }}" method="POST" style="display: none;">
+                                    @csrf
+                                </form>
+                                <form action="{{ route('process.cod') }}" method="POST">
+                                    @csrf
+                                    <button type="button" id="payment-button" class="btn btn-purple px-4 btn-lg w-100 mb-2">
                                         Pay with Khalti
                                     </button>
-                                    <a href="" class="btn btn-secondary btn-lg w-100 m">Cash on Delivery</a>
-                                    <hr>
-
-                                    <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>
+                                    <button type="submit" class="btn btn-secondary btn-lg w-100">
+                                        Cash on Delivery
+                                    </button>
                                 </form>
+                                <hr>
+                                <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>
                             </div>
 
                         </div>
@@ -174,7 +188,7 @@
 @section('scripts')
     <script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
     <script>
-        const totalPrice = parseInt("{{ $order->total }}");
+        const totalPrice = parseInt("{{ $orderSummary->total }}");
         var config = {
             "publicKey": "test_public_key_dc74a653b6de4a039232c708adcdd204",
             "productIdentity": "1234567890",
@@ -189,7 +203,25 @@
             ],
             "eventHandler": {
                 onSuccess(payload) {
-                    console.log(payload);
+                    fetch('{{ route('process.khalti') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                window.location.href = '{{ route('order.success') }}';
+                            } else {
+                                alert('Payment processing failed.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        });
                 },
                 onError(error) {
                     console.log(error);
