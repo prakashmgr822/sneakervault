@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendOrderConfirmationEmail;
-use App\Mail\OrderConfirmationEmail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Notifications\Customer\NewOrderPlacedNotification;
 use App\Notifications\Vendor\NewOrderNotification;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Illuminate\Http\Request;
@@ -480,10 +479,11 @@ class FrontController extends Controller
         $order->status = 'paid';
         $order->save();
 
-        dispatch(new SendOrderConfirmationEmail($order, $user->email));
 
         Cart::session($userId)->clear();
         ModelCart::where('user_id', $userId)->delete();
+
+        $user->notify(new NewOrderPlacedNotification($order));
 
         return redirect()->route('order.success')->with('success', 'Payment successful!');
     }
@@ -535,10 +535,11 @@ class FrontController extends Controller
         $order->status = 'cash_on_delivery';
         $order->save();
 
-        dispatch(new SendOrderConfirmationEmail($order, $user->email));
 
         Cart::session($userId)->clear();
         ModelCart::where('user_id', $userId)->delete();
+
+        $user->notify(new NewOrderPlacedNotification($order));
 
         return redirect()->route('order.success')->with('success', 'Order placed successfully! Cash on Delivery.');
     }
