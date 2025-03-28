@@ -159,18 +159,25 @@
 
 {{--                                    <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>--}}
 {{--                                </form>--}}
-                                <form id="khalti-form" action="{{ route('process.khalti') }}" method="POST" style="display: none;">
-                                    @csrf
-                                </form>
-                                <form action="{{ route('process.cod') }}" method="POST">
-                                    @csrf
-                                    <button type="button" id="payment-button" class="btn btn-purple px-4 btn-lg w-100 mb-2">
-                                        Pay with Khalti
-                                    </button>
-                                    <button type="submit" class="btn btn-secondary btn-lg w-100">
-                                        Cash on Delivery
-                                    </button>
-                                </form>
+                                <div class="col-12">
+                                    <form action="{{ route('initiate.payment') }}" method="POST">
+                                        @csrf
+                                        <button type="submit"  class="btn btn-purple px-4 btn-lg w-100 mb-2">
+                                            Pay with Khalti
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-12">
+                                    <form action="{{ route('process.cod') }}" method="POST">
+                                        @csrf
+
+                                        <button type="submit" class="btn btn-secondary btn-lg w-100">
+                                            Cash on Delivery
+                                        </button>
+                                    </form>
+                                </div>
+
+
                                 <hr>
                                 <a href="{{ route('cart') }}" class="btn btn-outline-secondary btn-lg w-100">Back to Cart</a>
                             </div>
@@ -186,56 +193,44 @@
 @endsection
 
 @section('scripts')
-    <script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
+    <script src="https://khalti.com/static/khalti-checkout.js"></script>
     <script>
-        const totalPrice = parseInt("{{ $orderSummary->total }}");
-        var config = {
-            "publicKey": "test_public_key_dc74a653b6de4a039232c708adcdd204",
-            "productIdentity": "1234567890",
-            "productName": "Dragon",
-            "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
-            "paymentPreference": [
-                "KHALTI",
-                "EBANKING",
-                "MOBILE_BANKING",
-                "CONNECT_IPS",
-                "SCT",
-            ],
-            "eventHandler": {
-                onSuccess(payload) {
-                    fetch('{{ route('process.khalti') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                window.location.href = '{{ route('order.success') }}';
-                            } else {
-                                alert('Payment processing failed.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred. Please try again.');
-                        });
-                },
-                onError(error) {
-                    console.log(error);
-                },
-                onClose() {
-                    console.log('widget is closing');
-                }
-            }
-        };
+        {{--var config = {--}}
+        {{--    publicKey: "4625bb10a6f5459885d3da153116a69d",--}}
+        {{--    productIdentity: "sneaker_001",--}}
+        {{--    productName: "Nike Air Max",--}}
+        {{--    productUrl: "https://sneakervault.com/product/001",--}}
+        {{--    eventHandler: {--}}
+        {{--        onSuccess(payload) {--}}
+        {{--            console.log("Payment successful", payload);--}}
 
-        var checkout = new KhaltiCheckout(config);
-        var btn = document.getElementById("payment-button");
-        btn.onclick = function () {
-            checkout.show({amount: totalPrice * 100});
-        }
+        {{--            // Send token & amount to Laravel backend--}}
+        {{--            fetch("{{ route('khalti.verify') }}", {--}}
+        {{--                method: "POST",--}}
+        {{--                headers: {--}}
+        {{--                    "Content-Type": "application/json",--}}
+        {{--                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content--}}
+        {{--                },--}}
+        {{--                body: JSON.stringify({--}}
+        {{--                    token: payload.token,--}}
+        {{--                    amount: payload.amount--}}
+        {{--                })--}}
+        {{--            })--}}
+        {{--                .then(response => response.json())--}}
+        {{--                .then(data => console.log(data))--}}
+        {{--                .catch(error => console.error("Error:", error));--}}
+        {{--        },--}}
+        {{--        onError(error) {--}}
+        {{--            console.log("Payment failed", error);--}}
+        {{--        }--}}
+        {{--    }--}}
+        {{--};--}}
+
+        {{--var checkout = new KhaltiCheckout(config);--}}
+
+        {{--document.getElementById("payment-button").onclick = function () {--}}
+        {{--    checkout.show({ amount: 1000 }); // Rs. 10 in paisa (1000 paisa)--}}
+        {{--};--}}
     </script>
+
 @endsection

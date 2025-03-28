@@ -19,7 +19,10 @@ return new class extends Migration
             $table->decimal('shipping_cost', 10,2)->nullable();
             $table->decimal('total', 10, 2);
             $table->string('status')->default('pending');
+            $table->string('pidx');
+            $table->string('transcation_id')->nullable();
             $table->string('shipping_address');
+
             $table->timestamps();
         });
     }

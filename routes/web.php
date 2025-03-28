@@ -50,6 +50,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/process-khalti-payment', [FrontController::class, 'processKhaltiPayment'])->name('process.khalti');
     Route::post('/process-cod-payment', [FrontController::class, 'processCodPayment'])->name('process.cod');
     Route::get('/order-success', [FrontController::class, 'orderSuccess'])->name('order.success');
+    Route::get('/order-failed', [FrontController::class, 'orderFailed'])->name('order.failed');
+    Route::post('/khalti-payment', [FrontController::class, 'khaltiPayment'])->name('khalti.payment');
+    Route::post('/epayment/initiate/', [FrontController::class, 'initiatePayment'])->name('initiate.payment');
+    Route::get('/return', [FrontController::class, 'lookup'])->name('lookup');
+
 
 
     Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {

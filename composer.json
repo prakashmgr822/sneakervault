@@ -8,6 +8,8 @@
     "require": {
         "php": "^8.2",
         "darryldecode/cart": "^4.2",
+        "dipesh79/laravel-khalti": "^0.0.1",
+        "guzzlehttp/guzzle": "^7.9",
         "jeroennoten/laravel-adminlte": "^3.14",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",

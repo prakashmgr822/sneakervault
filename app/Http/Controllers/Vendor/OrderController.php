@@ -58,8 +58,8 @@ class OrderController extends BaseController
                     // Display product details (name, size, quantity) with hyperlink
                     return $vendorProducts->map(function ($product) {
                         $productUrl = route('products.show', $product->id); // Generate product URL
-                        return "<a href='{$productUrl}' target='_blank'>{$product->name}</a> (Size: {$product->pivot->shoe_size}, Qty: {$product->pivot->quantity})";
-                    })->implode('<br>');
+                        return "<a href='{$productUrl}' target='_blank'>{$product->name}</a> [Size: {$product->pivot->size}, Qty: {$product->pivot->quantity}]";
+                    })->implode('<hr>');
                 })
 
                 ->rawColumns(['products']) // Render HTML in products and action columns

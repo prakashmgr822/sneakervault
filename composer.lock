@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9fa337c0233afa8fba7031e2b5a79c2d",
+    "content-hash": "0882eaba22b6cd88aa5eb71b446b974c",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -475,6 +475,52 @@
                 "source": "https://github.com/dflydev/dflydev-dot-access-data/tree/v3.0.3"
             },
             "time": "2024-07-08T12:26:09+00:00"
+        },
+        {
+            "name": "dipesh79/laravel-khalti",
+            "version": "0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Dipesh79/LaravelKhalti.git",
+                "reference": "430538d6dc7d3b792107c0aa730341ad6378b5c9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Dipesh79/LaravelKhalti/zipball/430538d6dc7d3b792107c0aa730341ad6378b5c9",
+                "reference": "430538d6dc7d3b792107c0aa730341ad6378b5c9",
+                "shasum": ""
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Dipesh79\\LaravelKhalti\\KhaltiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dipesh79\\LaravelKhalti\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dipesh79",
+                    "email": "dipeshkhanal79@gmail.com",
+                    "homepage": "https://www.khanaldipesh.com.np",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel Khalti - A simple Laravel Package to integrate khalti payment.",
+            "support": {
+                "issues": "https://github.com/Dipesh79/LaravelKhalti/issues",
+                "source": "https://github.com/Dipesh79/LaravelKhalti/tree/0.0.1"
+            },
+            "time": "2024-05-08T04:12:44+00:00"
         },
         {
             "name": "doctrine/inflector",
@@ -9973,12 +10019,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }

@@ -9,7 +9,10 @@ use App\Models\User;
 use App\Notifications\Customer\NewOrderPlacedNotification;
 use App\Notifications\Vendor\NewOrderNotification;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
+use Dipesh79\LaravelKhalti\LaravelKhalti;
+use Faker\Provider\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
@@ -115,8 +118,10 @@ class FrontController extends Controller
         $product = Product::findOrFail($productId);
         $userId = auth()->check() ? auth()->id() : session()->getId();
         $size = trim($request->get('size'));
-
         $availableSizes = $product->product_sizes;
+        if (!$size && !empty($availableSizes)) {
+            $size = $availableSizes[0]['name'];
+        }
         $sizeEntry = collect($availableSizes)->firstWhere('name', $size);
         if (!$sizeEntry) {
             return redirect()->back()->with('error', 'Invalid size selection.');
@@ -547,5 +552,170 @@ class FrontController extends Controller
     public function orderSuccess()
     {
         return view("front.order-success");
+    }
+
+    public function orderFailed()
+    {
+        return view("front.order-failed");
+    }
+
+
+//    public function verifyPayment(Request $request)
+//    {
+//        $request->validate([
+//            'token' => 'required',
+//            'amount' => 'required|integer'
+//        ]);
+//
+//        $response = Http::withHeaders([
+//            'Authorization' => 'Key ' . env('KHALTI_SECRET_KEY')
+//        ])->post('https://khalti.com/api/v2/payment/verify/', [
+//            'token' => $request->token,
+//            'amount' => $request->amount
+//        ]);
+//
+//        $data = $response->json();
+//
+//        if (isset($data['status']) && $data['status'] === 'Completed') {
+//            return response()->json(['message' => 'Payment successful', 'data' => $data], 200);
+//        } else {
+//            return response()->json(['error' => 'Payment verification failed', 'data' => $data], 400);
+//        }
+//    }
+
+    public function initiatePayment()
+{
+    $userId = auth()->check() ? auth()->id() : session()->getId();
+    $total = Cart::session($userId)->getTotal();
+    $amount = (int) $total * 100;
+    $data = [
+    "return_url" => "http://localhost:8000/return",
+    "website_url"=> "http://localhost:8000",
+    "amount"=> $amount,
+    "purchase_order_id" => "Order01",
+        "purchase_order_name"=> "test",
+
+    "customer_info"=> [
+        "name"=> "Test Bahadur",
+        "email"=> "test@khalti.com",
+        "phone"=> "9800000001"
+    ]
+    ];
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://dev.khalti.com/api/v2/epayment/initiate/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode($data,true),
+        CURLOPT_HTTPHEADER => array(
+            'Authorization: key 63c623417d4d48ab9a2a2b4ff9de0779',
+            'Content-Type: application/json',
+        ),
+    ));
+
+    $response = curl_exec($curl);
+
+    curl_close($curl);
+    $url = json_decode($response, true);
+    if (isset($url['error_key'])){
+
+    }
+
+    $userId = auth()->id();
+    $user = User::findOrFail($userId);
+    $cartData = Cart::session($userId)->getContent()->toArray();
+    $taxCondition = Cart::getCondition('VAT 12.5%');
+    $shippingCondition = Cart::getCondition('Shipping Cost');
+    $subTotal = Cart::session($userId)->getSubTotal();
+    $taxAmount = $taxCondition ? $taxCondition->getCalculatedValue($subTotal) : 0;
+    $shippingAmount = $shippingCondition ? $shippingCondition->getCalculatedValue($subTotal) : 0;
+    $total = Cart::session($userId)->getTotal();
+
+    // Create order only at payment confirmation if it doesn't already exist.
+//    $order = Order::where('user_id', $userId)
+//        ->where('status', 'pending')
+//        ->latest()
+//        ->first();
+        $cartRecord = ModelCart::where('user_id', $userId)->latest()->first();
+        $shippingAddress = $cartRecord ? $cartRecord->address : '';
+        $order = Order::create([
+            'user_id'          => $userId,
+            'subtotal'         => $subTotal,
+            'tax'              => $taxAmount,
+            'shipping_cost'    => $shippingAmount,
+            'total'            => $total,
+            'shipping_address' => $shippingAddress,
+            'status'           => 'pending',
+            'pidx'             => $url['pidx'],
+        ]);
+        foreach ($cartData as $item) {
+            list($productId, $shoeSize) = explode('-', $item['id']);
+            $order->products()->attach($productId, [
+                'size'     => $shoeSize,
+                'quantity' => $item['quantity'],
+            ]);
+        }
+
+
+
+    // Process the Khalti payment and update order status.
+    $order->save();
+
+    return view('front.khalti-pay', compact('url'));
+}
+
+    public function lookup(Request $request){
+
+        $order = Order::where('pidx', $request->pidx)->first();
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://dev.khalti.com/api/v2/epayment/lookup/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($request->all(),true),
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: key 63c623417d4d48ab9a2a2b4ff9de0779',
+                'Content-Type: application/json',
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $url = json_decode($response, true);
+        if ($url['status'] == 'Completed'){
+            $order->status = 'Completed';
+            $order->save();
+
+            foreach ($order->products ?? [] as $product) {
+           $vendor = $product->vendor;
+           $vendor->notify(new NewOrderNotification($order));
+            }
+
+            $userId = auth()->id();
+            $user = User::findOrFail($userId);
+            $user->notify(new NewOrderPlacedNotification($order));
+            Cart::session($userId)->clear();
+            ModelCart::where('user_id', $userId)->delete();
+            return redirect()->route('order.success')->with('success', 'Order placed successfully!');
+        }
+
+        else{
+            return redirect()->route('order.failed')->with('error', 'Order placed Failed!');
+
+        }
+
     }
 }
